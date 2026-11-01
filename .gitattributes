@@ -1,0 +1,4 @@
+*.fbx binary
+*.png binary
+# Preserve imported vendor files and license notices exactly, including line endings.
+Assets/ThirdParty/** -text -whitespace

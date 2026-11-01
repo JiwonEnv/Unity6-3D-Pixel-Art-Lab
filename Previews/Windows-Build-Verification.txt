@@ -1,0 +1,4 @@
+WINDOWS_BUILD_SUCCESS
+Size: 95987492 bytes
+Errors: 0
+Warnings: 0

@@ -3,13 +3,27 @@
 Unity 6에서 **3D 모델을 2D 픽셀 스프라이트처럼 표현하는 렌더링 연구**입니다.
 Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. 원작의 에셋·코드는 사용하지 않습니다.
 
-![Toon 명암을 유지하면서 횃불 주변광을 적용한 화면](Previews/10-After-Toon-Torch.png)
+![무료 에셋을 사용한 플레이 가능 탐험 씬](Previews/15-Amberwood-Playable.png)
 
 ## 실행
 
 1. Unity Hub에 이 폴더를 등록하고 **6000.3.9f1**로 엽니다.
-2. **Assets/Scenes/3D-Sprite-Rendering-Study.unity**를 열고 Play를 누릅니다.
-3. I / G / N으로 물체별 선과 조정한 법선을 비교합니다.
+2. **Assets/Scenes/Amberwood-Free-Roam.unity**를 열고 Play를 누릅니다.
+3. WASD 이동, Shift 달리기, Space 점프. Q/E 회전, 휠 확대, R 야영지 복귀.
+
+## 플레이 가능한 탐험 씬
+
+- 약 150m × 150m의 연결된 숲·야영지·호수·폐허·전망대.
+- CC0 무료 Kenney 환경 에셋과 KayKit 기사 캐릭터 사용.
+- 이동·달리기·점프·낙하·착지 애니메이션, 지형·장애물 충돌, 추적 카메라.
+- 미니맵, 5개 지역 발견, 3개 수집물, 물에 빠졌을 때 복귀, 일시정지.
+- 기존 Toon·물체별 선화·픽셀 렌더링·횃불 조명 유지.
+- Windows 실행 파일: `Builds/Amberwood/Amberwood.exe` (로컬 빌드, Git 제외).
+
+[실행·조작 안내](Docs/Amberwood-Free-Roam.md) · [무료 에셋 출처·라이선스](Docs/Third-Party-Assets.md) · [플레이 검증 결과](Previews/Open-World-Playtest.txt)
+
+맵은 유한한 탐험 프로토타입이며 전투·수영·저장 기능은 포함하지 않습니다.
+아래 그래픽 비교 조작은 별도 `3D-Sprite-Rendering-Study.unity` 씬에서 사용합니다.
 
 | 입력 | 기능 |
 | --- | --- |
