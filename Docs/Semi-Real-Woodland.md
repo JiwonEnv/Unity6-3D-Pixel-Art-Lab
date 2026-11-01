@@ -29,6 +29,8 @@ source-files.json은 공개 API의 다운로드 출처 기록이다.
 - 낮·밤, 횃불, 바람, 비와 눈의 젖음·적설을 새 재질에도 적용한다.
 - 비가 오면 맵 전역의 완만한 지면·흙길에 불규칙한 물웅덩이가 커진다. 캐릭터·나무·텐트를 실제로 뒤집어 렌더링한 별도 평면 반사와 빗방울 동심원으로 표현한다. Toon에서도 반사는 유지된다.
 - 2로 비를 켜고 몇 초 기다리면 생성된다. 1로 맑게 바꾸면 남은 물기가 서서히 마른다. 눈이 쌓이면 웅덩이를 숨긴다. C로 호수와 웅덩이의 반사를 함께 비교한다.
+- 물웅덩이 바깥에도 젖은 흙이 부드럽게 퍼진다. 같은 분포 마스크를 확장해 가장자리 모양을 맞추며, 인접 셀의 습기를 합쳐 직선 경계가 생기지 않게 한다. 젖은 흙은 더 짙고, 표면 거칠기와 미세 요철이 줄어 약하게 윤이 난다. 반사는 물 표면보다 훨씬 약하게 적용한다.
+- 습기는 물이 고이기 전부터 나타나고, 물이 줄어든 뒤에도 한동안 남았다가 기존 wetness 값에 따라 마른다. 적설로 덮이면 숨긴다. ForestGround·ForestTrail 재질의 `Damp soil around puddles` 값(기본 1)을 0으로 낮추면 기존 모습과 비교할 수 있다. 웅덩이 자체와 발 파문 판정은 유지한다.
 
 초기 버전의 높이 1.1m 제한은 제거했다. 이 제한이 같은 높이의 등고선을 따라 띠 모양으로 물웅덩이를 만들던 원인이었다. 현재는 맵 전체의 완만한 지면에 6m 셀별로 중심·크기·모양을 달리 배치한다. 급경사와 호수 아래 지면은 제외하며, 같은 맵에서는 위치가 유지된다. `PuddleMask.cginc`와 `PuddleSurface.cs`가 같은 정수 해시와 마스크 수식을 사용해 보이는 물과 발 판정을 맞춘다.
 
@@ -78,5 +80,6 @@ source-files.json은 공개 API의 다운로드 출처 기록이다.
 - 발 상호작용 Play 검증: `PixelArtLab.Editor.PuddleWorldVerification.Play`.
 - 반사 좌표·캐릭터 반사·나무/캐릭터/횃불 그림자 검증: `PixelArtLab.Editor.ReflectionShadowVerification.Run`.
 - 낮은 꽃·고도별 반사·시간대별 눈 그림자 검증: `PixelArtLab.Editor.TerrainReflectionVerification.Run`.
+- 젖은 가장자리·잔류 습기·건조·적설 검증: `PixelArtLab.Editor.WetSoilVerification.Run`.
 - 적설 임계값·실제 걷기·자국 소멸·화면 카메라 검증: `PixelArtLab.Editor.SnowFootprintVerification.Play`.
 - 실행 파일은 빌드하지 않았다.

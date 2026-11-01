@@ -1,0 +1,6 @@
+WET_SOIL_SUCCESS
+Wet shore pixels: 34977; darker soil pixels: 29210
+Residual damp soil pixels after shallow water dries: 17992
+Dry ground unchanged: PASS
+Snow coverage hides wet stain: PASS
+NO PLAYER BUILD

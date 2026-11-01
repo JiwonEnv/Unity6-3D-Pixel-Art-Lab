@@ -25,6 +25,7 @@ Shader "PixelArtLab/Sprite Toon"
         _DetailReflection ("Planar water reflection",2D)="black"{}
         _ReflectionStrength ("Water reflection strength",Range(0,1))=.6
         _Puddles ("Rain puddles on ground",Range(0,1))=0
+        _PuddleWetStrength ("Damp soil around puddles",Range(0,1))=1
         _PuddleReflection ("Ground planar reflection",2D)="black"{}
         _CharacterRim ("Character rim strength",Range(0,1))=0
         _CharacterBounce ("Character bounce fill",Range(0,1))=0
@@ -56,7 +57,7 @@ Shader "PixelArtLab/Sprite Toon"
         half _SemiPBR,_NormalScale,_UsePackedARM,_Roughness,_AOStrength,_Metallic,_AlphaClip,_Cutoff,_LeafTwoSided,_ReflectionStrength;
         float _LabDetailedToon,_LabNormalDisabled,_LabReflectionDisabled;
         sampler2D _PuddleReflection;
-        float _Puddles;
+        float _Puddles,_PuddleWetStrength;
         half _LabCharacter,_CharacterRim,_CharacterBounce;
         float4x4 _PuddleProjection;float _PuddleCaptureHeight;
         float4x4 _DetailProjection;float _DetailCaptureHeight;
@@ -119,9 +120,14 @@ Shader "PixelArtLab/Sprite Toon"
             o.Albedo*=lerp(1,surface.r,_UsePackedARM*_AOStrength);
             float3 worldNormal=normalize(WorldNormalVector(IN,o.Normal));
             // Stable world-space basins: rain expands the pools, residual wetness dries them.
-            float pool=0;float3 geometryNormal=normalize(WorldNormalVector(IN,half3(0,0,1)));
+            float pool=0,wetGround=0;float3 geometryNormal=normalize(WorldNormalVector(IN,half3(0,0,1)));
             if(_Puddles>.001){
-            pool=_Puddles*LabPuddleMask(IN.worldPos,geometryNormal.y,_LabEnvironment.z,_LabEnvironment.w);
+            float2 regions=LabPuddleRegions(IN.worldPos,geometryNormal.y,_LabEnvironment.z,_LabEnvironment.w);
+            pool=_Puddles*regions.x;
+            wetGround=_Puddles*_PuddleWetStrength*regions.y*(1-pool);
+            o.Albedo*=lerp(half3(1,1,1),half3(.43,.50,.54),wetGround);
+            o.Specular=lerp(o.Specular,.28,wetGround);
+            o.Normal=normalize(lerp(o.Normal,half3(0,0,1),wetGround*.25));
             float2 rippleCell=floor(IN.worldPos.xz*1.3);
             float rippleAge=frac(_LabWaterTime*1.25+frac(sin(dot(rippleCell,float2(43.1,17.7)))*1327.8));
             float2 rippleOffset=frac(IN.worldPos.xz*1.3)-.5;
@@ -166,7 +172,7 @@ Shader "PixelArtLab/Sprite Toon"
                 half3 bounce=lerp(half3(.15,.25,.40),half3(.32,.37,.24),_LabEnvironment.y);
                 o.Emission+=o.Albedo*bounce*_CharacterBounce*(.45+.55*(1-saturate(worldNormal.y)));
             }
-            if(pool>.001&&_LabReflectionPass<.5)
+            if((pool>.001||wetGround>.001)&&_LabReflectionPass<.5)
             {
                 // Preserve actual receiver height: flattening y to the capture plane
                 // compensated only half the offset and detached distant reflections.
@@ -174,6 +180,7 @@ Shader "PixelArtLab/Sprite Toon"
                 float2 uv=puddleClip.xy/puddleClip.w*.5+.5+o.Normal.xy*.012;
                 half3 reflected=tex2D(_PuddleReflection,uv).rgb;
                 float reflectionAmount=pool*(.55+.25*pow(1-saturate(dot(geometryNormal,normalize(_WorldSpaceCameraPos-IN.worldPos))),4))*(1-_LabReflectionDisabled);
+                reflectionAmount+=wetGround*.06*pow(1-saturate(dot(geometryNormal,normalize(_WorldSpaceCameraPos-IN.worldPos))),2)*(1-_LabReflectionDisabled);
                 o.Albedo*=1-reflectionAmount*.8;
                 o.Emission+=reflected*reflectionAmount;
             }

@@ -64,6 +64,7 @@ Material:
     - _Metallic: 0
     - _NormalScale: 0.7
     - _PuddleHeight: 1.1
+    - _PuddleWetStrength: 1
     - _Puddles: 0
     - _ReflectionStrength: 0.95
     - _Roughness: 0.18
