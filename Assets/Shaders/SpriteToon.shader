@@ -26,6 +26,10 @@ Shader "PixelArtLab/Sprite Toon"
         _ReflectionStrength ("Water reflection strength",Range(0,1))=.6
         _Puddles ("Rain puddles on ground",Range(0,1))=0
         _PuddleReflection ("Ground planar reflection",2D)="black"{}
+        _CharacterRim ("Character rim strength",Range(0,1))=0
+        _CharacterBounce ("Character bounce fill",Range(0,1))=0
+        [HideInInspector] _LabCharacter("Character",Float)=0
+        [HideInInspector] _LabRevealAmount("Player reveal",Float)=0
         [HideInInspector] _LabWindParams("World motion",Vector)=(0,0,1,0)
         [HideInInspector] _LabWaterBounds("Water center and radii",Vector)=(-30,22,11.5,10.5)
         [HideInInspector] _LabObjectData("Object metadata",Vector)=(.00392157,0,.25,1)
@@ -41,6 +45,7 @@ Shader "PixelArtLab/Sprite Toon"
         #include "UnityCG.cginc"
         #include "WorldMotion.cginc"
         #include "PuddleMask.cginc"
+        #include "PlayerVisibility.cginc"
         sampler2D _MainTex;
         sampler2D _NormalMap,_SurfaceMap,_AlphaMask,_DetailReflection;
         fixed4 _Color, _ShadeColor, _EmissionColor;
@@ -51,7 +56,8 @@ Shader "PixelArtLab/Sprite Toon"
         half _SemiPBR,_NormalScale,_UsePackedARM,_Roughness,_AOStrength,_Metallic,_AlphaClip,_Cutoff,_LeafTwoSided,_ReflectionStrength;
         float _LabDetailedToon,_LabNormalDisabled,_LabReflectionDisabled;
         sampler2D _PuddleReflection;
-        float _Puddles,_LabReflectionPass;
+        float _Puddles;
+        half _LabCharacter,_CharacterRim,_CharacterBounce;
         float4x4 _PuddleProjection;float _PuddleCaptureHeight;
         float4x4 _DetailProjection;float _DetailCaptureHeight;
         struct Input { float2 uv_MainTex; float3 worldPos; float3 worldNormal; float3 viewDir; float4 screenPos; INTERNAL_DATA };
@@ -96,6 +102,7 @@ Shader "PixelArtLab/Sprite Toon"
         {
             fixed4 paint=tex2D(_MainTex,IN.uv_MainTex);
             clip(lerp(1,tex2D(_AlphaMask,IN.uv_MainTex).r,_AlphaClip)-_Cutoff);
+            LabVisibilityClip(IN.worldPos,IN.screenPos);
             o.Albedo = paint.rgb * _Color.rgb;
             half3 normal=UnpackNormal(tex2D(_NormalMap,IN.uv_MainTex));
             if(_LabWindParams.x>3.5&&_SemiPBR>.01)
@@ -148,6 +155,17 @@ Shader "PixelArtLab/Sprite Toon"
                 }
             }
             o.Alpha=1; o.Emission=_EmissionColor.rgb;
+            if(_LabCharacter>.5)
+            {
+                float3 view=normalize(_WorldSpaceCameraPos-IN.worldPos);
+                float rim=floor(pow(1-saturate(dot(worldNormal,view)),3.5)*4+.35)/4;
+                float3 light=normalize(_WorldSpaceLightPos0.xyz-IN.worldPos*_WorldSpaceLightPos0.w);
+                float facing=lerp(.4,1,saturate(dot(worldNormal,light)*.5+.5));
+                half3 rimColor=lerp(half3(.42,.68,1),half3(1,.86,.62),_LabEnvironment.y*.6);
+                o.Emission+=rimColor*rim*_CharacterRim*facing;
+                half3 bounce=lerp(half3(.15,.25,.40),half3(.32,.37,.24),_LabEnvironment.y);
+                o.Emission+=o.Albedo*bounce*_CharacterBounce*(.45+.55*(1-saturate(worldNormal.y)));
+            }
             if(pool>.001&&_LabReflectionPass<.5)
             {
                 // Preserve actual receiver height: flattening y to the capture plane
@@ -171,6 +189,47 @@ Shader "PixelArtLab/Sprite Toon"
             }
         }
         ENDCG
+        Pass
+        {
+            Name "OccluderStencil"
+            Tags {"LightMode"="PlayerVisibilityStencil"}
+            ColorMask 0 ZWrite Off ZTest Equal Cull [_Cull]
+            Stencil {Ref 5 Comp Always Pass Replace}
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 3.0
+            #include "UnityCG.cginc"
+            #include "WorldMotion.cginc"
+            sampler2D _MainTex,_AlphaMask;float4 _MainTex_ST;float _AlphaClip,_Cutoff;
+            struct v2f{float4 position:SV_POSITION;float2 uv:TEXCOORD0;};
+            v2f vert(appdata_base v){LabDeformVertex(v.vertex,v.normal,v.texcoord.xy);v2f o;o.position=UnityObjectToClipPos(v.vertex);o.uv=TRANSFORM_TEX(v.texcoord,_MainTex);return o;}
+            fixed4 frag(v2f i):SV_Target{clip(lerp(1,tex2D(_AlphaMask,i.uv).r,_AlphaClip)-_Cutoff);return 0;}
+            ENDCG
+        }
+        Pass
+        {
+            Name "CharacterScan"
+            Tags {"LightMode"="PlayerVisibilityScan"}
+            ZWrite Off ZTest Greater Cull Back Blend SrcAlpha OneMinusSrcAlpha
+            Stencil {Ref 5 Comp Equal Pass Keep}
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 3.0
+            #include "UnityCG.cginc"
+            float _LabScanAmount,_LabScanTime;
+            struct v2f{float4 position:SV_POSITION;float3 world:TEXCOORD0;float3 normal:TEXCOORD1;};
+            v2f vert(appdata_base v){v2f o;o.position=UnityObjectToClipPos(v.vertex);o.world=mul(unity_ObjectToWorld,v.vertex).xyz;o.normal=UnityObjectToWorldNormal(v.normal);return o;}
+            fixed4 frag(v2f i):SV_Target
+            {
+                float rim=pow(1-saturate(dot(normalize(i.normal),normalize(_WorldSpaceCameraPos-i.world))),2);
+                float scan=step(.7,frac(i.world.y*12-_LabScanTime*.8));
+                float grid=max(step(.84,frac(i.world.x*10)),step(.84,frac(i.world.z*10)));
+                return float4(lerp(float3(.04,.55,.78),float3(.4,.95,1),saturate(rim*.7+grid*.25+scan*.2)),_LabScanAmount*(.24+rim*.46+scan*.18+grid*.12));
+            }
+            ENDCG
+        }
     }
     Fallback "Diffuse"
 }

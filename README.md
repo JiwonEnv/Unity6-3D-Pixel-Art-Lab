@@ -12,6 +12,10 @@ Poly Haven CC0 나무·고사리·바위와 노멀·거칠기·AO, 물결·평�
 J 명암 방식, K 노멀 맵, C 반사, M 야영지/호숫가, Tab 해상도 비교.
 [구현·출처·조작 안내](Docs/Semi-Real-Woodland.md)
 
+캐릭터 조명·가림 해소: **F5** 림·보조광, **F6** 큰 나무·물체의 컷아웃,
+**F7** 벽 뒤 스캔 실루엣 비교. 낮은 푯말은 그대로 유지합니다.
+[설정과 검증](Docs/Player-Readability.md)
+
 1. Unity Hub에 이 폴더를 등록하고 **6000.3.9f1**로 엽니다.
 2. **Assets/Scenes/Amberwood-Free-Roam.unity**를 열고 Play를 누릅니다.
 3. WASD 이동, Shift 달리기, Space 점프. Q/E 회전, 휠 확대, R 야영지 복귀.

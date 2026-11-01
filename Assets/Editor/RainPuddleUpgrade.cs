@@ -24,6 +24,7 @@ namespace PixelArtLab.Editor
             var steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();if(!steps)steps=new GameObject("Puddle footstep rings and splashes").AddComponent<PuddleFootsteps>();steps.player=env.player;steps.environment=env;
             var snow=UnityEngine.Object.FindFirstObjectByType<SnowFootprints>();if(!snow)snow=new GameObject("Fading snow footprints").AddComponent<SnowFootprints>();snow.player=env.player;snow.environment=env;
             foreach(var renderer in env.player.GetComponentsInChildren<Renderer>(true)){renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;renderer.receiveShadows=true;if(renderer is SkinnedMeshRenderer skin)skin.updateWhenOffscreen=true;}
+            PlayerVisibilityUpgrade.Configure(camera);
             return reflection;
         }
         static Color32[] Render(Camera camera)

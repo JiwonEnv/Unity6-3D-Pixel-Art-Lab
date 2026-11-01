@@ -51,8 +51,12 @@ Material:
     m_Floats:
     - _AOStrength: 0.7
     - _AlphaClip: 0
+    - _CharacterBounce: 0
+    - _CharacterRim: 0
     - _Cull: 2
     - _Cutoff: 0.45
+    - _LabCharacter: 0
+    - _LabRevealAmount: 0
     - _LabWaterFlow: 1
     - _LabWaveScale: 3
     - _LeafTwoSided: 0

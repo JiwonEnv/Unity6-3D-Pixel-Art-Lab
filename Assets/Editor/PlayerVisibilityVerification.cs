@@ -1,0 +1,43 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+namespace PixelArtLab.Editor
+{
+    public static class PlayerVisibilityVerification
+    {
+        static Color32[] Read(RenderTexture target){var old=RenderTexture.active;RenderTexture.active=target;var t=new Texture2D(target.width,target.height,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,target.width,target.height),0,0);t.Apply();var data=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=old;return data;}
+        static Color32[] Render(Camera camera){camera.Render();return Read(camera.targetTexture);}
+        static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();
+        static int Visible(Camera c,int id)=>Read(c.GetComponent<PixelLinework>().IdentityBuffer).Count(p=>p.r+p.g*256==id);
+        static void Require(bool c,string message){if(!c)throw new Exception(message);}
+        public static void Run()
+        {
+            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.runClock=false;env.windEnabled=false;env.hour=0;env.SetWeather(ValleyWeather.Clear,true);
+            var camera=env.worldCamera;var visibility=camera.GetComponent<PlayerVisibility>();Require(visibility,"Visibility setup missing");var originals=visibility.occluders;
+            var shader=Shader.Find("PixelArtLab/Sprite Toon");Require(!ShaderUtil.GetShaderMessages(shader).Any(m=>m.severity==UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error),"Character shader compile error");
+            Vector3 floor=new Vector3(0,OpenWorldSceneBuilder.Height(0,-10),-10);env.player.transform.position=floor+Vector3.up*.05f;
+            camera.aspect=640f/360;camera.orthographicSize=3.5f;camera.transform.position=env.player.transform.position+Vector3.up*.95f-camera.transform.forward*45;
+            var rt=new RenderTexture(640,360,24);rt.Create();camera.targetTexture=rt;visibility.occluders=new PlayerOccluder[0];visibility.rimEnabled=false;visibility.Refresh(1);var rimOff=Render(camera);visibility.rimEnabled=true;visibility.Refresh(1);int rimPixels=Difference(rimOff,Render(camera));Require(rimPixels>60,"Rim / bounce did not improve character");OpenWorldSceneBuilder.Capture(camera,"Previews/41-Character-Rim-Night.png");
+            var report=new List<string>{"PLAYER_VISIBILITY_SUCCESS","Character rim / bounce pixels: "+rimPixels};
+            env.hour=13;env.Apply();Vector3 toward=-camera.transform.forward;toward.y=0;toward.Normalize();
+            var tree=UnityEngine.Object.Instantiate(originals.First(t=>t.mode==PlayerOcclusionMode.NaturalFade&&t.name.StartsWith("tree_")).gameObject);tree.name="Verification tree";tree.transform.position=floor+toward*3;
+            var target=tree.GetComponent<PlayerOccluder>();visibility.occluders=new[]{target};visibility.naturalReveal=false;visibility.Refresh(1);Render(camera);int playerId=env.player.GetComponent<PixelArtObject>().objectId;int before=Visible(camera,playerId);OpenWorldSceneBuilder.Capture(camera,"Previews/42-Tree-Occlusion-Before.png");
+            visibility.naturalReveal=true;visibility.Refresh(.05f);Require(target.visibility>0&&target.visibility<1,"Reveal does not fade in");visibility.Refresh(1);Render(camera);int after=Visible(camera,playerId);Require(visibility.FadingObjects==1&&after>before+60,$"Tree reveal failed: {before}/{after}");OpenWorldSceneBuilder.Capture(camera,"Previews/43-Tree-Player-Reveal.png");report.Add($"Tree foreground reveal: player pixels {before} -> {after} PASS");
+            var reflection=GameObject.Find("Walkable hills and connected trails").GetComponent<DetailWaterReflection>();env.SetWeather(ValleyWeather.Rain,true);target.Apply(0);reflection.Refresh();var reflected=Read(reflection.ReflectionTexture);target.Apply(1);reflection.Refresh();Require(Difference(reflected,Read(reflection.ReflectionTexture))==0,"Tree cutout leaked into reflection");report.Add("Reveal leaves reflection geometry unchanged: PASS");env.SetWeather(ValleyWeather.Clear,true);UnityEngine.Object.DestroyImmediate(tree);
+            var signSource=UnityEngine.Object.FindObjectsByType<PixelArtObject>(FindObjectsSortMode.None).First(t=>t.name=="sign");Require(!signSource.GetComponent<PlayerOccluder>(),"Low sign is marked for reveal");var sign=UnityEngine.Object.Instantiate(signSource.gameObject);sign.transform.position=floor+toward*.4f;
+            visibility.occluders=new PlayerOccluder[0];visibility.Refresh(1);var signNormal=Render(camera);visibility.naturalReveal=false;visibility.buildingScan=false;visibility.Refresh(1);Require(Difference(signNormal,Render(camera))==0,"Low sign changed by reveal");report.Add("Low sign is excluded and renders unchanged: PASS");UnityEngine.Object.DestroyImmediate(sign);
+            var wall=UnityEngine.Object.Instantiate(originals.First(t=>t.mode==PlayerOcclusionMode.BuildingScan&&t.name=="wall-half").gameObject);wall.name="Verification wall";wall.transform.position=floor+toward*.65f;var wallRenderers=wall.GetComponentsInChildren<Renderer>();var wallBounds=wallRenderers[0].bounds;foreach(var r in wallRenderers)wallBounds.Encapsulate(r.bounds);wall.transform.localScale=new Vector3(1,1.6f/wallBounds.size.y,1);
+            target=wall.GetComponent<PlayerOccluder>();visibility.occluders=new[]{target};visibility.buildingScan=false;visibility.Refresh(1);var blocked=Render(camera);visibility.buildingScan=true;visibility.Refresh(1);var scan=Render(camera);int scanPixels=Difference(blocked,scan);Require(visibility.ScannedBuildings==1&&scanPixels>60,$"Wall scan missing: buildings={visibility.ScannedBuildings} changed={scanPixels}");OpenWorldSceneBuilder.Capture(camera,"Previews/44-Wall-Occluded-Scan.png");report.Add("Building-only hidden scan pixels: "+scanPixels);
+            visibility.buildingScan=false;visibility.Refresh(1);var hidden=Render(camera);visibility.buildingScan=true;visibility.Refresh(1);var shown=Render(camera);var ids=Read(camera.GetComponent<PixelLinework>().IdentityBuffer);int visibleChanges=0,visiblePart=0;for(int i=0;i<ids.Length;i++)if(ids[i].r+ids[i].g*256==playerId){visiblePart++;if(Mathf.Abs(hidden[i].r-shown[i].r)+Mathf.Abs(hidden[i].g-shown[i].g)+Mathf.Abs(hidden[i].b-shown[i].b)>8)visibleChanges++;}Require(visiblePart>20&&visibleChanges==0,$"Scan paints visible character: visible={visiblePart}, changed={visibleChanges}");report.Add("Visible character pixels unaffected by wall scan: PASS");
+            var prop=GameObject.CreatePrimitive(PrimitiveType.Cube);prop.transform.position=floor+toward*1.2f+Vector3.up*1.2f;prop.transform.localScale=Vector3.one*.7f;var propMaterial=new Material(shader);prop.GetComponent<Renderer>().sharedMaterial=propMaterial;var propId=prop.AddComponent<PixelArtObject>();propId.objectId=65000;propId.Apply();
+            visibility.buildingScan=false;visibility.Refresh(1);var propOff=Render(camera);visibility.buildingScan=true;visibility.Refresh(1);var propOn=Render(camera);ids=Read(camera.GetComponent<PixelLinework>().IdentityBuffer);int propChanged=0;for(int i=0;i<ids.Length;i++)if(ids[i].r+ids[i].g*256==65000&&Mathf.Abs(propOff[i].r-propOn[i].r)+Mathf.Abs(propOff[i].g-propOn[i].g)+Mathf.Abs(propOff[i].b-propOn[i].b)>8)propChanged++;Require(propChanged==0,"Scan bleeds onto non-building foreground props");report.Add("Wall stencil excludes non-building foreground props: PASS");UnityEngine.Object.DestroyImmediate(prop);UnityEngine.Object.DestroyImmediate(propMaterial);
+            UnityEngine.Object.DestroyImmediate(wall);visibility.occluders=new PlayerOccluder[0];visibility.Refresh(1);var unblocked=Render(camera);visibility.buildingScan=false;visibility.Refresh(1);Require(Difference(unblocked,Render(camera))==0,"Scan remains after wall removed");report.Add("Scan disappears after obstruction leaves: PASS");
+            foreach(var auxiliary in Resources.FindObjectsOfTypeAll<Camera>().Where(c=>c.name=="Object Identity Camera"||c.name=="Detail Water Reflection Camera"))Require(auxiliary.GetCommandBuffers(UnityEngine.Rendering.CameraEvent.BeforeImageEffects).Length==0,"Wall scan command copied into auxiliary camera");report.Add("Auxiliary ID and reflection cameras do not inherit scan commands: PASS");
+            visibility.occluders=originals;visibility.buildingScan=true;visibility.naturalReveal=true;camera.targetTexture=null;rt.Release();UnityEngine.Object.DestroyImmediate(rt);File.WriteAllLines("Previews/Player-Visibility-Verification.txt",report);Debug.Log(string.Join("\n",report));
+        }
+    }
+}
