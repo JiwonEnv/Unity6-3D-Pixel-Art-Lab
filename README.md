@@ -3,13 +3,26 @@
 Unity 6에서 **3D 모델을 2D 픽셀 스프라이트처럼 표현하는 렌더링 연구**입니다.
 Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. 원작의 에셋·코드는 사용하지 않습니다.
 
-![무료 에셋을 사용한 플레이 가능 탐험 씬](Previews/15-Amberwood-Playable.png)
+![눈이 내리는 탐험 씬](Previews/19-Weather-Snow.png)
 
 ## 실행
 
 1. Unity Hub에 이 폴더를 등록하고 **6000.3.9f1**로 엽니다.
 2. **Assets/Scenes/Amberwood-Free-Roam.unity**를 열고 Play를 누릅니다.
 3. WASD 이동, Shift 달리기, Space 점프. Q/E 회전, 휠 확대, R 야영지 복귀.
+
+## 낮·밤과 날씨
+
+- F1 / F2 / F3 / F4: 아침 / 정오 / 노을 / 밤. L: 시간 자동 흐름.
+- 1 / 2 / 3: 맑음 / 비 / 눈. B: 바람, V: 물결, U: 단계적인 캐릭터 회전 비교.
+- 시간대별 Toon 그림자 색, 밤의 횃불, 젖은 표면·눈 쌓임, 픽셀 정렬 강수 입자.
+- 물결·잔물결·물가 포말과 나무·풀·깃발의 바람 변형.
+- 변형된 화면·그림자·ID·깊이 정보를 맞춰 움직이는 물체의 선화 유지.
+
+[개발자 자료와 구현 문서](Docs/Atmosphere-Research.md) · [환경 검증](Previews/Atmosphere-Verification.txt)
+
+이번 업데이트는 **실행 파일을 빌드하지 않았습니다.** 새 환경 기능은 Unity Play 모드에서 확인하세요.
+기존 Windows 실행 파일은 이전 버전입니다.
 
 ## 플레이 가능한 탐험 씬
 

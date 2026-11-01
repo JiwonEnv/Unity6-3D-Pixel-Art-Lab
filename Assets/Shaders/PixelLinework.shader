@@ -13,6 +13,9 @@ Shader "Hidden/PixelArtLab/Linework"
             #include "UnityCG.cginc"
             sampler2D _MainTex, _CameraDepthNormalsTexture;
             sampler2D _ObjectIdentityTexture;
+            sampler2D _LabSceneDepthNormals;
+            float _HasSceneDepthNormals;
+            float4 SceneGeometry(float2 uv){return _HasSceneDepthNormals>.5?tex2D(_LabSceneDepthNormals,uv):tex2D(_CameraDepthNormalsTexture,uv);}
             float4 _MainTex_TexelSize;
             float _DepthThreshold, _NormalThreshold, _LineStrength;
             float _UseObjectIds, _DebugObjectIds;
@@ -20,7 +23,7 @@ Shader "Hidden/PixelArtLab/Linework"
             {
                 float4 color=tex2D(_MainTex,i.uv);
                 float depth; float3 normal;
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture,i.uv),depth,normal);
+                DecodeDepthNormal(SceneGeometry(i.uv),depth,normal);
                 float4 objectData=tex2D(_ObjectIdentityTexture,i.uv);
                 float id=round(objectData.r*255)+round(objectData.g*255)*256;
                 if(_DebugObjectIds>.5)
@@ -33,7 +36,7 @@ Shader "Hidden/PixelArtLab/Linework"
                 for(int k=0;k<4;k++)
                 {
                     float d;float3 n;
-                    DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture,i.uv+offsets[k]*abs(_MainTex_TexelSize.xy)),d,n);
+                    DecodeDepthNormal(SceneGeometry(i.uv+offsets[k]*abs(_MainTex_TexelSize.xy)),d,n);
                     float4 other=tex2D(_ObjectIdentityTexture,i.uv+offsets[k]*abs(_MainTex_TexelSize.xy));
                     float otherId=round(other.r*255)+round(other.g*255)*256;
                     float separate=step(.5,abs(id-otherId));

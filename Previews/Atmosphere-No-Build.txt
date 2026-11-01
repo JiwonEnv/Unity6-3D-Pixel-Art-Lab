@@ -1,0 +1,3 @@
+NO PLAYER BUILD WAS RUN
+Existing Amberwood.exe SHA256 unchanged: A30757FDACED5B2B01A43651642425666CF958F9671C42AEA4A5837369535D33
+Verification used Unity editor scene rendering and Play mode only.

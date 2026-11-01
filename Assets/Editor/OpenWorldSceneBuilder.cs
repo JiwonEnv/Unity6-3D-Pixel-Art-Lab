@@ -170,6 +170,7 @@ namespace PixelArtLab.Editor
             camera.transform.position=Surface(-30,22)+Vector3.up*2-camera.transform.forward*45;Capture(camera,"Previews/13-Amberwood-Lake.png");
             camera.orthographicSize=85;camera.transform.rotation=Quaternion.Euler(65,0,0);camera.transform.position=new Vector3(0,2,0)-camera.transform.forward*110;Capture(camera,"Previews/14-Amberwood-Map.png");
             Debug.Log("OPEN_WORLD_BUILD_SUCCESS models="+worldRoot.GetComponentsInChildren<MeshRenderer>().Length+" imported-materials="+materials.Count);
+            OpenWorldAtmosphereUpgrade.Apply();
         }
         static void Ground()
         {

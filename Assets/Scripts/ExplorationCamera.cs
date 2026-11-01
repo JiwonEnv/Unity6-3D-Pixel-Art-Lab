@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PixelArtLab
 {
-    [RequireComponent(typeof(Camera))]
+    [DefaultExecutionOrder(100),RequireComponent(typeof(Camera))]
     public sealed class ExplorationCamera : MonoBehaviour
     {
         public ExplorerMotor player;

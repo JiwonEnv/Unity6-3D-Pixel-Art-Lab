@@ -13,6 +13,7 @@ namespace PixelArtLab
         public Vector2 externalMove;
         public bool externalSprint;
         public LayerMask groundLayers=~(1<<8);
+        public bool steppedFacing=true;
         CharacterController controller;
         Vector3 horizontal;
         float vertical, lastGrounded=-10, lastJump=-10;
@@ -59,7 +60,11 @@ namespace PixelArtLab
                 Grounded=(flags&CollisionFlags.Below)!=0;
             }
             Grounded=vertical<=0&&(Grounded||ProbeGround());
-            if(visual&&direction.sqrMagnitude>.01f)visual.rotation=Quaternion.Slerp(visual.rotation,Quaternion.LookRotation(direction),Time.deltaTime*14);
+            if(visual&&direction.sqrMagnitude>.01f)
+            {
+                if(steppedFacing){float angle=Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;visual.rotation=Quaternion.Euler(0,Mathf.Round(angle/22.5f)*22.5f,0);}
+                else visual.rotation=Quaternion.Slerp(visual.rotation,Quaternion.LookRotation(direction),Time.deltaTime*14);
+            }
             if(animator){animator.SetFloat("Speed",horizontal.magnitude);animator.SetBool("Grounded",Grounded);animator.SetFloat("VerticalSpeed",vertical);}
             if(transform.position.y<-8 || Mathf.Abs(transform.position.x)>85 || Mathf.Abs(transform.position.z)>85)Respawn();
         }

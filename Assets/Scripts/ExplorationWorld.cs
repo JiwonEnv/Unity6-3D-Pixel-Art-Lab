@@ -6,6 +6,7 @@ namespace PixelArtLab
     {
         public ExplorerMotor player;
         public ExplorationCamera followCamera;
+        public WorldEnvironment environment;
         public Transform[] landmarks;
         public string[] landmarkNames;
         public Transform[] crystals;
@@ -53,15 +54,17 @@ namespace PixelArtLab
                 label=new GUIStyle(GUI.skin.label){fontSize=13,normal={textColor=new Color(.92f,.92f,.85f)}};
                 small=new GUIStyle(label){fontSize=12};
             }
-            Panel(new Rect(20,20,330,85));GUI.Label(new Rect(35,29,310,26),"AMBERWOOD / FREE ROAM",heading);
+            Panel(new Rect(20,20,330,110));GUI.Label(new Rect(35,29,310,26),"AMBERWOOD / FREE ROAM",heading);
             GUI.Label(new Rect(35,55,310,23),player.Region,label);
             GUI.Label(new Rect(35,77,310,22),$"Waystones {collected}/{crystals.Length}    Regions {VisitedCount}/{landmarks.Length}",small);
+            if(environment)GUI.Label(new Rect(35,100,310,22),environment.ClockLabel+"    "+environment.weather+"    "+(environment.runClock?"Clock running":"Clock paused"),small);
             DrawMap();
             if(showGuide)
             {
-                Panel(new Rect(20,Screen.height-79,690,59));
-                GUI.Label(new Rect(34,Screen.height-74,660,24),"WASD / Arrows  Move   SHIFT  Sprint   SPACE  Jump   R  Return to camp",label);
-                GUI.Label(new Rect(34,Screen.height-49,660,24),"Q/E  Orbit   Wheel  Zoom   T  Toon   O  Ink   TAB  Pixels   H  Guide   ESC  Pause",small);
+                Panel(new Rect(20,Screen.height-103,730,83));
+                GUI.Label(new Rect(34,Screen.height-98,700,24),"WASD  Move   SHIFT  Sprint   SPACE  Jump   R  Camp   Q/E  Orbit   Wheel  Zoom",label);
+                GUI.Label(new Rect(34,Screen.height-74,700,24),"F1/F2/F3/F4  Morning / Noon / Sunset / Night    1  Clear    2  Rain    3  Snow",small);
+                GUI.Label(new Rect(34,Screen.height-50,700,24),"L  Clock   B  Wind   V  Water   U  Facing   T  Toon   O  Ink   TAB  Pixels   H  Guide",small);
             }
             if(Time.time<bannerUntil){Panel(new Rect(Screen.width*.5f-240,120,480,34));GUI.Label(new Rect(Screen.width*.5f-226,125,460,26),banner,label);}
             if(Time.timeScale==0){Panel(new Rect(Screen.width*.5f-100,Screen.height*.5f-30,200,60));GUI.Label(new Rect(Screen.width*.5f-80,Screen.height*.5f-18,170,30),"PAUSED — ESC",heading);}

@@ -1,0 +1,4 @@
+REPEATABLE_ATMOSPHERE_UPGRADE_SUCCESS
+Flag vertex count: 27648
+No recursive subdivision
+NO PLAYER BUILD WAS RUN
