@@ -1,0 +1,9 @@
+RAIN_PUDDLE_SUCCESS
+Puddle pixels: 12464
+Reflection pixels: 12439
+Toon reflections: PASS
+Animated rain rings: PASS
+Residual wetness after rain: PASS
+Dry ground and snow hide pools: PASS
+Reflection render state restored: PASS
+NO PLAYER BUILD

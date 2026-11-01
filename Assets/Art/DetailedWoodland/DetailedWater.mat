@@ -39,6 +39,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 97e9afea18513d14e8e67db56507dd5d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _PuddleReflection:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SurfaceMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -55,6 +59,8 @@ Material:
     - _LocalLightStrength: 1.1
     - _Metallic: 0
     - _NormalScale: 0.7
+    - _PuddleHeight: 1.1
+    - _Puddles: 0
     - _ReflectionStrength: 0.95
     - _Roughness: 0.18
     - _SemiPBR: 0.8

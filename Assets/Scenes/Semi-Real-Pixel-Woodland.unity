@@ -1340,6 +1340,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.DetailWaterReflection
   source: {fileID: 65014384}
   waterMaterial: {fileID: 2100000, guid: 43896eb8e79e5e141bd4be7e23b73011, type: 2}
+  additionalMaterials: []
+  textureProperty: _DetailReflection
   waterHeight: 0.3
   reflections: 1
 --- !u!1001 &36244178
@@ -26238,6 +26240,7 @@ GameObject:
   - component: {fileID: 642748285}
   - component: {fileID: 642748284}
   - component: {fileID: 642748283}
+  - component: {fileID: 642748287}
   m_Layer: 0
   m_Name: Walkable hills and connected trails
   m_TagString: Untagged
@@ -26356,6 +26359,25 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 642748281}
   m_Mesh: {fileID: 4300000, guid: fbc9cbc4986bc4743a25061ab60ca1ee, type: 2}
+--- !u!114 &642748287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 642748281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78307c3cf36742841b5f5252890fe983, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.DetailWaterReflection
+  source: {fileID: 65014384}
+  waterMaterial: {fileID: 2100000, guid: 7e6461c4f93ff8a4fa8db47c574fd7ab, type: 2}
+  additionalMaterials:
+  - {fileID: 2100000, guid: 10325fb0b24cb5243b97db9d0ab5f4bb, type: 2}
+  textureProperty: _PuddleReflection
+  waterHeight: 1.1
+  reflections: 1
 --- !u!1001 &643770279
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -24,6 +24,9 @@ Shader "PixelArtLab/Sprite Toon"
         [HideInInspector] _LabWaterFlow("Smooth water clock",Float)=0
         _DetailReflection ("Planar water reflection",2D)="black"{}
         _ReflectionStrength ("Water reflection strength",Range(0,1))=.6
+        _Puddles ("Rain puddles on ground",Range(0,1))=0
+        _PuddleHeight ("Puddle plane height",Float)=1.1
+        _PuddleReflection ("Ground planar reflection",2D)="black"{}
         [HideInInspector] _LabWindParams("World motion",Vector)=(0,0,1,0)
         [HideInInspector] _LabWaterBounds("Water center and radii",Vector)=(-30,22,11.5,10.5)
         [HideInInspector] _LabObjectData("Object metadata",Vector)=(.00392157,0,.25,1)
@@ -47,6 +50,8 @@ Shader "PixelArtLab/Sprite Toon"
         float _LabCloudCover;
         half _SemiPBR,_NormalScale,_UsePackedARM,_Roughness,_AOStrength,_Metallic,_AlphaClip,_Cutoff,_LeafTwoSided,_ReflectionStrength;
         float _LabDetailedToon,_LabNormalDisabled,_LabReflectionDisabled;
+        sampler2D _PuddleReflection;
+        float _Puddles,_PuddleHeight,_LabReflectionPass;
         struct Input { float2 uv_MainTex; float3 worldPos; float3 worldNormal; float3 viewDir; float4 screenPos; INTERNAL_DATA };
         void LabVertex(inout appdata_full v){LabDeformVertex(v.vertex,v.normal,v.texcoord.xy);}
         half DetailBlend(){return _SemiPBR>.001?(_LabDetailedToon>1.5?1:_LabDetailedToon>.5?0:_SemiPBR):0;}
@@ -101,6 +106,27 @@ Shader "PixelArtLab/Sprite Toon"
             o.Specular=clamp(_Roughness*lerp(1,surface.g,_UsePackedARM),.08,1);
             o.Albedo*=lerp(1,surface.r,_UsePackedARM*_AOStrength);
             float3 worldNormal=normalize(WorldNormalVector(IN,o.Normal));
+            // Stable world-space basins: rain expands the pools, residual wetness dries them.
+            float pool=0;float3 geometryNormal=normalize(WorldNormalVector(IN,half3(0,0,1)));
+            if(_Puddles>.001){
+            float2 cell=floor(IN.worldPos.xz/5);
+            float seed=frac(sin(dot(cell,float2(12.9898,78.233)))*43758.5453);
+            float2 offset=frac(IN.worldPos.xz/5)-float2(.35+seed*.3,.45+sin(seed*17)*.12);
+            float radius=length(offset*float2(.85+seed*.4,1.1+seed*.45));
+            float shore=sin(IN.worldPos.x*1.7+sin(IN.worldPos.z*2.1))*.045+sin(IN.worldPos.z*4.7+IN.worldPos.x*.5)*.02;
+            float fill=smoothstep(.22,.95,_LabEnvironment.z);
+            pool=(1-smoothstep(.18+fill*.16,.205+fill*.16,radius+shore))*fill;
+
+            pool*=_Puddles*step(.25,seed)*smoothstep(.92,.995,geometryNormal.y);
+            pool*=1-smoothstep(.08,.22,abs(IN.worldPos.y-_PuddleHeight));
+            pool*=1-saturate(_LabEnvironment.w*2);
+            float2 rippleCell=floor(IN.worldPos.xz*1.3);
+            float rippleAge=frac(_LabWaterTime*1.25+frac(sin(dot(rippleCell,float2(43.1,17.7)))*1327.8));
+            float2 rippleOffset=frac(IN.worldPos.xz*1.3)-.5;
+            float ring=sin((length(rippleOffset)-rippleAge*.7)*65)*exp(-abs(length(rippleOffset)-rippleAge*.7)*35)*(1-rippleAge);
+            o.Normal=normalize(lerp(o.Normal,half3(normalize(rippleOffset+.001)*ring*.08*_LabEnvironment.z,1),pool));
+            o.Specular=lerp(o.Specular,.12,pool);
+            }
             if(_LabEnvironment.x>.5)
             {
                 float top=saturate((worldNormal.y-.20)*1.6);
@@ -127,7 +153,15 @@ Shader "PixelArtLab/Sprite Toon"
                 }
             }
             o.Alpha=1; o.Emission=_EmissionColor.rgb;
-            if(_LabWindParams.x>3.5&&_SemiPBR>.01)
+            if(pool>.001&&_LabReflectionPass<.5)
+            {
+                float2 uv=IN.screenPos.xy/IN.screenPos.w+o.Normal.xy*.012;
+                half3 reflected=tex2D(_PuddleReflection,uv).rgb;
+                float reflectionAmount=pool*(.55+.25*pow(1-saturate(dot(geometryNormal,normalize(_WorldSpaceCameraPos-IN.worldPos))),4))*(1-_LabReflectionDisabled);
+                o.Albedo*=1-reflectionAmount*.8;
+                o.Emission+=reflected*reflectionAmount;
+            }
+            if(_LabWindParams.x>3.5&&_SemiPBR>.01&&_LabReflectionPass<.5)
             {
                 float2 uv=IN.screenPos.xy/IN.screenPos.w;
                 uv+=o.Normal.xy*.018;

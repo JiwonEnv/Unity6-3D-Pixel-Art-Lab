@@ -77,6 +77,7 @@ namespace PixelArtLab.Editor
             var reflection=lake.GetComponent<DetailWaterReflection>();if(!reflection)reflection=lake.AddComponent<DetailWaterReflection>();reflection.source=follow.GetComponent<Camera>();reflection.waterMaterial=water;
             var controls=UnityEngine.Object.FindFirstObjectByType<DetailLookControls>();if(!controls)controls=new GameObject("Detailed Asset Comparison Controls").AddComponent<DetailLookControls>();controls.follow=follow;controls.player=player;controls.water=reflection;controls.style=0;controls.Apply();
             AssetDatabase.SaveAssets();EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(),ScenePath);
+            RainPuddleUpgrade.Configure(follow.GetComponent<Camera>());
             Preview(environment,reflection);
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(),ScenePath);
             AssetDatabase.SaveAssets();Debug.Log("DETAILED_WOODLAND_SUCCESS assets="+detailRoot.childCount);
