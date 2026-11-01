@@ -6,13 +6,14 @@ Shader "PixelArtLab/Sprite Toon"
         _ShadeColor ("Shadow Hue", Color) = (.40,.40,.58,1)
         _MainTex ("Painted Detail (Optional)", 2D) = "white" {}
         _EmissionColor ("Emission", Color) = (0,0,0,0)
+        [HideInInspector] _LabObjectData("Object metadata",Vector)=(.00392157,0,.25,1)
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 200
         CGPROGRAM
-        #pragma surface surf SpriteToon fullforwardshadows addshadow noambient noforwardadd
+        #pragma surface surf SpriteToon fullforwardshadows addshadow noambient
         #pragma target 3.0
         #include "UnityCG.cginc"
         sampler2D _MainTex;
@@ -25,8 +26,12 @@ Shader "PixelArtLab/Sprite Toon"
             half energy = n * atten;
             half band = energy < .16 ? 0 : energy < .48 ? .48 : energy < .78 ? .82 : 1;
             band = lerp(band, energy, _LabContinuous);
+            #ifdef UNITY_PASS_FORWARDADD
+            return half4(s.Albedo * _LightColor0.rgb * band,0);
+            #else
             half3 ramp = lerp(_ShadeColor.rgb, half3(1.04,1.0,.86),band);
             return half4(s.Albedo * ramp * lerp(half3(.9,.95,1.0),_LightColor0.rgb,.38),1);
+            #endif
         }
         void surf(Input IN, inout SurfaceOutput o)
         {

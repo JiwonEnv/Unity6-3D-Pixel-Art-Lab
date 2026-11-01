@@ -62,6 +62,37 @@ namespace PixelArtLab.Editor
                 Require(Mathf.Abs(x-Mathf.Round(x))<.001f && Mathf.Abs(y-Mathf.Round(y))<.001f,"Camera off pixel grid");
                 Require(Mathf.Abs(lab.OutputRect.width/rt.width-Mathf.Round(lab.OutputRect.width/rt.width))<.001f,"Non-integer display scale");
                 var original=Render(camera);
+                Require(lab.linework.identityShader && lab.linework.identityShader.isSupported,"Object identity shader unavailable");
+                var objects=UnityEngine.Object.FindObjectsByType<PixelArtObject>(FindObjectsSortMode.None);
+                Require(objects.Length>20,"Semantic object groups missing");
+                var seen=new System.Collections.Generic.HashSet<int>();
+                foreach(var obj in objects)
+                {
+                    Require(seen.Add(obj.objectId),"Duplicate object ID");
+                    foreach(var renderer in obj.GetComponentsInChildren<Renderer>())
+                    {
+                        if(renderer.GetComponentInParent<PixelArtObject>()!=obj)continue;
+                        var block=new MaterialPropertyBlock();renderer.GetPropertyBlock(block);var data=block.GetVector("_LabObjectData");
+                        int id=Mathf.RoundToInt(data.x*255)+Mathf.RoundToInt(data.y*255)*256;
+                        Require(id==obj.objectId,"Renderer lost its object ID after scene reload");
+                    }
+                }
+                lab.linework.debugIdentities=true;var debugIds=Render(camera);lab.linework.debugIdentities=false;
+                var idColors=new System.Collections.Generic.HashSet<int>();
+                foreach(var pixel in debugIds)idColors.Add(pixel.r+(pixel.g<<8)+(pixel.b<<16));
+                Require(idColors.Count>20,"Identity buffer does not separate objects");
+                lab.linework.objectBoundaries=false;var depthOnly=Render(camera);
+                int idDifference=Difference(original,depthOnly);Require(idDifference>100,"Object line policies did not affect rendered pixels");
+                lab.linework.objectBoundaries=true;
+                var profiles=UnityEngine.Object.FindObjectsByType<AuthoredNormalProfile>(FindObjectsSortMode.None);
+                Require(profiles.Length>20,"Authored normal profiles missing");
+                foreach(var profile in profiles){profile.useAuthored=false;profile.Apply();}
+                int normalDifference=Difference(original,Render(camera));Require(normalDifference>100,"Authored normals did not affect lighting");
+                foreach(var profile in profiles){profile.useAuthored=true;profile.Apply();}
+                var lights=UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+                foreach(var light in lights)if(light.type==LightType.Point)light.enabled=false;
+                int lampDifference=Difference(original,Render(camera));Require(lampDifference>10,"Point lights did not illuminate rendered surfaces");
+                foreach(var light in lights)if(light.type==LightType.Point)light.enabled=true;
                 lab.linework.linework=false;var noLines=Render(camera);int inkDifference=Difference(original,noLines);
                 Require(inkDifference>100,"Linework did not change rendered pixels");
                 lab.toon=false;lab.ApplyCamera();var continuous=Render(camera);int shadeDifference=Difference(noLines,continuous);
@@ -69,7 +100,7 @@ namespace PixelArtLab.Editor
                 lab.lowResolution=false;lab.ApplyCamera();Require(camera.targetTexture==null,"Native resolution toggle failed");
                 lab.lowResolution=true;lab.toon=true;lab.linework.linework=true;lab.ApplyCamera();Require(camera.targetTexture,"Pixel resolution restore failed");
                 Require(runtimeErrors==0,"Runtime errors: "+runtimeErrors);
-                string result=$"SPRITE_WORLD_PLAYMODE_SUCCESS\nPixel grid, density, integer upscale, native toggle: PASS\nLinework changed {inkDifference} pixels\nToon bands changed {shadeDifference} pixels\nRuntime script errors: {runtimeErrors}\n";
+                string result=$"SPRITE_WORLD_PLAYMODE_SUCCESS\nPixel grid, density, integer upscale, native toggle: PASS\nLinework changed {inkDifference} pixels\nToon bands changed {shadeDifference} pixels\nObject groups: {objects.Length}; debug ID colors: {idColors.Count}\nObject policies changed {idDifference} pixels\nAuthored normals changed {normalDifference} pixels\nPoint lights changed {lampDifference} pixels\nRuntime script errors: {runtimeErrors}\n";
                 File.WriteAllText("Previews/Rendering-Verification.txt",result);Debug.Log(result);
             }
             catch(Exception ex){Debug.LogError("SPRITE_WORLD_VERIFY_FAILED: "+ex);code=1;}
