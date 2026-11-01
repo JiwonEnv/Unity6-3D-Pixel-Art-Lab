@@ -1,0 +1,5 @@
+TORCH_LIGHTING_SUCCESS
+Toon illuminated pixels: 27596
+Continuous illuminated pixels: 23320
+Toon/continuous footprint ratio: 1.183
+Runtime errors: 0

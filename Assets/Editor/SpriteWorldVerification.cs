@@ -10,6 +10,11 @@ namespace PixelArtLab.Editor
     {
         static double start;
         static int runtimeErrors;
+        public static void CaptureTorchBaseline(){SessionState.SetBool("SpriteWorld.TorchBaseline",true);RunTorchLighting();}
+        public static void RunTorchLighting()
+        {
+            SessionState.SetBool("SpriteWorld.TorchOnly",true);Run();
+        }
         public static void Run()
         {
             EditorSceneManager.OpenScene("Assets/Scenes/3D-Sprite-Rendering-Study.unity");
@@ -52,6 +57,11 @@ namespace PixelArtLab.Editor
             try
             {
                 Require(Application.isPlaying,"Play mode did not start");
+                if(SessionState.GetBool("SpriteWorld.TorchOnly",false))
+                {
+                    SessionState.SetBool("SpriteWorld.TorchOnly",false);VerifyTorchLighting();
+                    Application.logMessageReceived-=Log;EditorApplication.isPlaying=false;EditorApplication.Exit(0);return;
+                }
                 var lab=UnityEngine.Object.FindFirstObjectByType<SpriteWorldControls>();Require(lab,"Missing controls");
                 lab.ApplyCamera();var camera=lab.worldCamera;var rt=camera.targetTexture;
                 Require(rt && rt.filterMode==FilterMode.Point && rt.antiAliasing==1,"Pixel buffer configuration");
@@ -105,6 +115,54 @@ namespace PixelArtLab.Editor
             }
             catch(Exception ex){Debug.LogError("SPRITE_WORLD_VERIFY_FAILED: "+ex);code=1;}
             Application.logMessageReceived-=Log;EditorApplication.isPlaying=false;EditorApplication.Exit(code);
+        }
+        static void VerifyTorchLighting()
+        {
+            bool baseline=SessionState.GetBool("SpriteWorld.TorchBaseline",false);
+            SessionState.SetBool("SpriteWorld.TorchBaseline",false);
+            var lab=UnityEngine.Object.FindFirstObjectByType<SpriteWorldControls>();Require(lab,"Missing controls");
+            lab.SetView(3);lab.ApplyCamera();
+            var camera=lab.worldCamera;var previous=camera.targetTexture;
+            var target=new RenderTexture(640,360,24){filterMode=FilterMode.Point};target.Create();camera.targetTexture=target;
+            var lights=UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+            var lamps=Array.FindAll(lights,l=>l.type==LightType.Point);
+            Require(lamps.Length==2,"Expected two scene torches");
+            Color32[] toonLit=null,toonDark=null,smoothLit=null,smoothDark=null;
+            var originalStates=Array.ConvertAll(lamps,l=>l.enabled);
+            try
+            {
+                Shader.SetGlobalFloat("_LabContinuous",0);
+                foreach(var lamp in lamps)lamp.enabled=true;toonLit=Render(camera);
+                foreach(var lamp in lamps)lamp.enabled=false;toonDark=Render(camera);
+                Shader.SetGlobalFloat("_LabContinuous",1);
+                foreach(var lamp in lamps)lamp.enabled=true;smoothLit=Render(camera);
+                foreach(var lamp in lamps)lamp.enabled=false;smoothDark=Render(camera);
+                int toonPixels=Difference(toonLit,toonDark),smoothPixels=Difference(smoothLit,smoothDark);
+                float ratio=(float)toonPixels/Mathf.Max(1,smoothPixels);
+                if(!baseline)
+                {
+                    Require(toonPixels>500,"Toon mode lost the surrounding torch illumination");
+                    Require(ratio>.6f,"Toon mode discarded most of the continuous-light footprint");
+                    Require(runtimeErrors==0,"Runtime shader/script errors");
+                }
+                string prefix=baseline?"09-Before":"10-After";
+                SavePixels(prefix+"-Toon-Torch.png",toonLit,640,360);
+                SavePixels(prefix+"-Continuous-Torch.png",smoothLit,640,360);
+                SavePixels(prefix+"-Toon-No-Torches.png",toonDark,640,360);
+                string result=$"TORCH_LIGHTING_{(baseline?"BASELINE":"SUCCESS")}\nToon illuminated pixels: {toonPixels}\nContinuous illuminated pixels: {smoothPixels}\nToon/continuous footprint ratio: {ratio:F3}\nRuntime errors: {runtimeErrors}\n";
+                File.WriteAllText("Previews/"+(baseline?"Torch-Lighting-Before.txt":"Torch-Lighting-Verification.txt"),result);Debug.Log(result);
+            }
+            finally
+            {
+                for(int i=0;i<lamps.Length;i++)lamps[i].enabled=originalStates[i];
+                Shader.SetGlobalFloat("_LabContinuous",lab.toon?0:1);
+                camera.targetTexture=previous;target.Release();UnityEngine.Object.Destroy(target);
+            }
+        }
+        static void SavePixels(string name,Color32[] pixels,int width,int height)
+        {
+            var texture=new Texture2D(width,height,TextureFormat.RGB24,false);texture.SetPixels32(pixels);texture.Apply();
+            File.WriteAllBytes("Previews/"+name,texture.EncodeToPNG());UnityEngine.Object.Destroy(texture);
         }
     }
 }

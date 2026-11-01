@@ -1,9 +1,9 @@
 SPRITE_WORLD_PLAYMODE_SUCCESS
 Pixel grid, density, integer upscale, native toggle: PASS
 Linework changed 10909 pixels
-Toon bands changed 97458 pixels
+Toon bands changed 100891 pixels
 Object groups: 55; debug ID colors: 56
-Object policies changed 21409 pixels
-Authored normals changed 6552 pixels
-Point lights changed 267 pixels
+Object policies changed 21494 pixels
+Authored normals changed 6649 pixels
+Point lights changed 12167 pixels
 Runtime script errors: 0

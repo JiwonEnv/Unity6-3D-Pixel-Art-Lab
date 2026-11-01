@@ -3,7 +3,7 @@
 Unity 6에서 **3D 모델을 2D 픽셀 스프라이트처럼 표현하는 렌더링 연구**입니다.
 Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. 원작의 에셋·코드는 사용하지 않습니다.
 
-![물체별 선화와 조정한 법선을 적용한 화면](Previews/05-Art-Directed-Sprite-World.png)
+![Toon 명암을 유지하면서 횃불 주변광을 적용한 화면](Previews/10-After-Toon-Torch.png)
 
 ## 실행
 
@@ -37,6 +37,8 @@ Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. �
 - 무작위 텍셀 노이즈 대신 넓은 색면과 형상을 사용하는 모델 구성.
 - 얼굴·장비를 보강한 캐릭터, 가늘어지는 가지, 잎 덩어리, 관목과 꽃.
 - 방향광과 실제 Point Light의 추가 툰 조명 패스로 횃불 주변을 밝힙니다.
+- 추가 광원은 표면 명암만 단계화하고 거리 감쇠를 유지해 Toon 모드에서도 주변광이 사라지지 않습니다.
+- 기존 Sprite Toon 재질의 `Local Light Strength`로 국소 조명의 반응 세기를 조절할 수 있습니다(기본 1).
 
 [캐릭터 확대](Previews/07-Character-Lighting-Closeup.png) · [물체 ID 확인](Previews/06-Object-Identity-Debug.png) · [기본 법선 비교](Previews/08-Default-Normals-Comparison.png)
 
@@ -57,6 +59,8 @@ Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. �
 - `Pixel Art Lab > Build Research-Based Sprite World`: 새 장면과 비교 이미지 생성.
 - 장면을 덮어쓰므로 편집한 장면은 다른 이름으로 저장하세요.
 - 자동 검증 진입점: `PixelArtLab.Editor.SpriteWorldVerification.Run`.
+- 횃불 회귀 검증: `PixelArtLab.Editor.SpriteWorldVerification.RunTorchLighting`.
+- [횃불 검증 결과](Previews/Torch-Lighting-Verification.txt): Toon/연속 명암에서 광원 ON/OFF의 화면 차이 비교.
 - [검증 결과](Previews/Rendering-Verification.txt): 카메라 정렬, 정수 확대, ID 복원, 선화·법선·광원의 픽셀 변화, 해상도 전환.
 
 ## 첫 번째 연구 보존

@@ -1,0 +1,5 @@
+TORCH_LIGHTING_BASELINE
+Toon illuminated pixels: 575
+Continuous illuminated pixels: 23320
+Toon/continuous footprint ratio: 0.025
+Runtime errors: 0
