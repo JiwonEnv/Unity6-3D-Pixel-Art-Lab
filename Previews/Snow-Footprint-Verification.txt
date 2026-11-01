@@ -1,0 +1,3 @@
+SNOW_FOOTPRINT_SUCCESS
+40% threshold; walking trail; gradual fade and expiry; melting removes marks; display camera active: PASS
+NO PLAYER BUILD

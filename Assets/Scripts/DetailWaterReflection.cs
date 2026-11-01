@@ -41,12 +41,15 @@ namespace PixelArtLab
                 mirror.projectionMatrix=source.CalculateObliqueMatrix(plane);
                 GL.invertCulling=!previous;Shader.SetGlobalFloat("_LabReflectionPass",1);mirror.Render();waterMaterial.SetTexture(textureProperty,texture);
                 if(additionalMaterials!=null)foreach(var material in additionalMaterials)if(material)material.SetTexture(textureProperty,texture);
+                // Texture UVs use bottom-left viewport space; render-into-texture GPU projection
+                // flips Y on D3D and would sample the opposite side of this reflection.
+                var projection=GL.GetGPUProjectionMatrix(mirror.projectionMatrix,false)*mirror.worldToCameraMatrix;
                 if(textureProperty=="_PuddleReflection")
                 {
-                    var projection=GL.GetGPUProjectionMatrix(mirror.projectionMatrix,true)*mirror.worldToCameraMatrix;
                     waterMaterial.SetMatrix("_PuddleProjection",projection);waterMaterial.SetFloat("_PuddleCaptureHeight",waterHeight);
                     if(additionalMaterials!=null)foreach(var material in additionalMaterials)if(material){material.SetMatrix("_PuddleProjection",projection);material.SetFloat("_PuddleCaptureHeight",waterHeight);}
                 }
+                else{waterMaterial.SetMatrix("_DetailProjection",projection);waterMaterial.SetFloat("_DetailCaptureHeight",waterHeight);}
             }
             finally{GL.invertCulling=previous;Shader.SetGlobalFloat("_LabReflectionPass",previousPass);rendering=false;}
         }

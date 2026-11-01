@@ -53,6 +53,7 @@ Shader "PixelArtLab/Sprite Toon"
         sampler2D _PuddleReflection;
         float _Puddles,_LabReflectionPass;
         float4x4 _PuddleProjection;float _PuddleCaptureHeight;
+        float4x4 _DetailProjection;float _DetailCaptureHeight;
         struct Input { float2 uv_MainTex; float3 worldPos; float3 worldNormal; float3 viewDir; float4 screenPos; INTERNAL_DATA };
         void LabVertex(inout appdata_full v){LabDeformVertex(v.vertex,v.normal,v.texcoord.xy);}
         half DetailBlend(){return _SemiPBR>.001?(_LabDetailedToon>1.5?1:_LabDetailedToon>.5?0:_SemiPBR):0;}
@@ -155,7 +156,8 @@ Shader "PixelArtLab/Sprite Toon"
             }
             if(_LabWindParams.x>3.5&&_SemiPBR>.01&&_LabReflectionPass<.5)
             {
-                float2 uv=IN.screenPos.xy/IN.screenPos.w;
+                float4 waterClip=mul(_DetailProjection,float4(IN.worldPos.x,_DetailCaptureHeight,IN.worldPos.z,1));
+                float2 uv=waterClip.xy/waterClip.w*.5+.5;
                 uv+=o.Normal.xy*.018;
                 float3 view=normalize(_WorldSpaceCameraPos-IN.worldPos);
                 float fresnel=.12+.75*pow(1-saturate(dot(worldNormal,view)),4);

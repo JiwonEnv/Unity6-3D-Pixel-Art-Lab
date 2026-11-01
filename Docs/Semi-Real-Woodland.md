@@ -36,6 +36,14 @@ source-files.json은 공개 API의 다운로드 출처 기록이다.
 
 반사 카메라는 플레이어 발밑 지면의 높이를 따라가고, 높이가 다른 웅덩이의 투영을 보정한다. 근처 반사를 우선하는 한 장의 평면 반사이므로 멀리 있는 서로 다른 높이의 반사는 근사 표현이다. 물 유입·침식 시뮬레이션은 없으며, 물이 충분할 때만 추가 반사 카메라가 동작한다.
 
+반사 좌표는 GPU의 렌더 텍스처 Y 반전을 중복 적용하지 않는 뷰포트 좌표로 통일했다. 기존에는 텍스처의 반대쪽을 읽어 물체가 엉뚱한 곳에 보이고 캐릭터 반사가 사라졌다. 실제 색상 표식 위치와 투영 좌표를 비교하고, 캐릭터를 반사 카메라에서만 숨겼을 때 웅덩이 화면이 달라지는지 검증한다.
+
+태양·달 그림자의 표시 거리는 120m, 4개 캐스케이드, Very High 해상도로 설정한다. 기존 42m는 약 45m 떨어진 추적 카메라에서 지면을 포함하지 못했다. 캐릭터는 그림자 캐스팅·수신과 화면 밖 스킨 갱신을 활성화한다. 픽셀 버퍼를 표시할 때 별도 빈 화면 카메라로 검정 여백을 지워 Game View의 “No cameras rendering” 표시도 방지한다.
+
+가까운 횃불도 그림자를 만든다. 플레이어가 광원 범위 +2m 안에 있을 때 최대 두 개의 횃불에 512 해상도의 포인트 그림자를 활성화해, 멀리 있는 모든 횃불을 계속 렌더링하지 않는다.
+
+적설량 40%부터 걸음마다 좌우 부츠 앞부분·뒤꿈치 모양을 눈 위에 남긴다. 4초간 유지한 뒤 서서히 흐려지고 생성 후 18초에 제거된다. 눈이 녹으면 기존 자국도 지워진다. 최대 128개를 순환 재사용하며, 공중 이동에는 생성하지 않고 착지에는 두 발 자국을 남긴다.
+
 완전한 Standard/PBR 셰이딩이나 유체 시뮬레이션은 아니다. GGX는 직접광 근사이며 실시간 평면 반사로 수면의 주변 풍경을 보완한다.
 
 ## 비교 조작
@@ -64,4 +72,6 @@ source-files.json은 공개 API의 다운로드 출처 기록이다.
 - 결과: `Previews/Detailed-Woodland-Verification.txt`, `Previews/Detailed-Woodland-Playtest.txt`.
 - 맵 전역 분포 검증: `PixelArtLab.Editor.PuddleWorldVerification.Distribution`.
 - 발 상호작용 Play 검증: `PixelArtLab.Editor.PuddleWorldVerification.Play`.
+- 반사 좌표·캐릭터 반사·나무/캐릭터/횃불 그림자 검증: `PixelArtLab.Editor.ReflectionShadowVerification.Run`.
+- 적설 임계값·실제 걷기·자국 소멸·화면 카메라 검증: `PixelArtLab.Editor.SnowFootprintVerification.Play`.
 - 실행 파일은 빌드하지 않았다.

@@ -26,9 +26,13 @@ namespace PixelArtLab
         public string ClockLabel=>$"{Mathf.FloorToInt(hour):00}:{Mathf.FloorToInt((hour%1)*60):00}";
         void OnEnable()
         {
+            // Follow camera sits 45m away; a 42m shadow distance cannot reach the ground.
+            QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=120;
+            QualitySettings.shadowResolution=ShadowResolution.VeryHigh;QualitySettings.shadowCascades=4;QualitySettings.pixelLightCount=4;
             if(!sun)sun=RenderSettings.sun;
             if(!worldCamera)worldCamera=Camera.main;
             if(sun){originalSunColor=sun.color;originalIntensity=sun.intensity;originalRotation=sun.transform.rotation;cached=true;}
+            if(sun){sun.shadows=LightShadows.Hard;sun.shadowStrength=.9f;sun.shadowBias=.025f;sun.shadowNormalBias=.10f;sun.renderMode=LightRenderMode.ForcePixel;}
             if(worldCamera)originalBackground=worldCamera.backgroundColor;
             Apply();
         }
@@ -86,7 +90,14 @@ namespace PixelArtLab
             Shader.SetGlobalFloat("_LabWaterTime",animationTime);
             Shader.SetGlobalFloat("_LabWaterMotion",waterEnabled?1:0);
             Shader.SetGlobalFloat("_LabCloudCover",Mathf.Clamp01(.12f+cloud));
-            if(torches!=null)foreach(var torch in torches)if(torch)torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
+            int localShadowLights=0;
+            if(torches!=null)foreach(var torch in torches)if(torch)
+            {
+                torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
+                bool nearby=player&&Vector3.Distance(player.transform.position,torch.transform.position)<torch.range+2;
+                bool cast=nearby&&localShadowLights<2;if(cast)localShadowLights++;
+                torch.shadows=cast?LightShadows.Hard:LightShadows.None;torch.shadowStrength=.85f;torch.shadowBias=.025f;torch.shadowNormalBias=.1f;torch.shadowCustomResolution=512;
+            }
             Color background=Color.Lerp(new Color(.035f,.055f,.105f),new Color(.32f,.43f,.48f),Daylight);
             background=Color.Lerp(background,new Color(.35f,.41f,.47f),cloud*.55f);
             if(worldCamera)worldCamera.backgroundColor=background;

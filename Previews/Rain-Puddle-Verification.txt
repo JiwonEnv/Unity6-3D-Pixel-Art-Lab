@@ -1,6 +1,6 @@
 RAIN_PUDDLE_SUCCESS
-Puddle pixels: 32268
-Reflection pixels: 32221
+Puddle pixels: 32169
+Reflection pixels: 32145
 Toon reflections: PASS
 Animated rain rings: PASS
 Residual wetness after rain: PASS

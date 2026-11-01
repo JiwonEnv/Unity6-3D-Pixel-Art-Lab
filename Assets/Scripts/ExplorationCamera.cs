@@ -13,6 +13,7 @@ namespace PixelArtLab
         public Vector3 lookOffset;
         Camera cameraComponent;
         RenderTexture buffer;
+        Camera displayClearCamera;
         Vector3 focus,velocity;
         bool initialized;
         public Rect OutputRect {get; private set;}
@@ -46,6 +47,14 @@ namespace PixelArtLab
             local.y=(Mathf.Round(local.y*pixelsPerUnit-(height&1)*.5f)+(height&1)*.5f)/pixelsPerUnit;
             transform.SetPositionAndRotation(rotation*local,rotation);cameraComponent.orthographicSize=height/(2f*pixelsPerUnit);
             cameraComponent.targetTexture=pixelated?buffer:null;Shader.SetGlobalFloat("_LabContinuous",toon?0:1);
+            // Keep a real display camera active while the scene camera renders offscreen.
+            // The existing OnGUI draws the integer-scaled pixel buffer over its black clear.
+            if(pixelated&&!displayClearCamera)
+            {
+                var display=new GameObject("Pixel Display Clear Camera"){hideFlags=HideFlags.HideAndDontSave};displayClearCamera=display.AddComponent<Camera>();
+                displayClearCamera.cullingMask=0;displayClearCamera.clearFlags=CameraClearFlags.SolidColor;displayClearCamera.backgroundColor=Color.black;displayClearCamera.depth=-100;
+            }
+            if(displayClearCamera)displayClearCamera.enabled=pixelated;
             OutputRect=new Rect((Screen.width-width*scale)*.5f,(Screen.height-height*scale)*.5f,width*scale,height*scale);
         }
         void OnGUI()
@@ -54,6 +63,6 @@ namespace PixelArtLab
             if(pixelated&&buffer){GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height),Texture2D.blackTexture);GUI.DrawTexture(OutputRect,buffer,ScaleMode.StretchToFill);}
         }
         void Release(){if(buffer){buffer.Release();Destroy(buffer);buffer=null;}}
-        void OnDisable(){if(cameraComponent)cameraComponent.targetTexture=null;Release();Shader.SetGlobalFloat("_LabContinuous",0);}
+        void OnDisable(){if(cameraComponent)cameraComponent.targetTexture=null;Release();if(displayClearCamera)Destroy(displayClearCamera.gameObject);Shader.SetGlobalFloat("_LabContinuous",0);}
     }
 }
