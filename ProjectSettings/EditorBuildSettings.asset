@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/3D-Sprite-Rendering-Study.unity
+    guid: f935c11542a4510499d2c3b18406b89b
+  - enabled: 1
     path: Assets/Scenes/3D-Pixel-Art-Lighting-Study.unity
     guid: bd3ec79becf06c54c894ca06d01c86e0
   m_configObjects: {}

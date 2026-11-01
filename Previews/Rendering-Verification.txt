@@ -1,0 +1,5 @@
+SPRITE_WORLD_PLAYMODE_SUCCESS
+Pixel grid, density, integer upscale, native toggle: PASS
+Linework changed 17234 pixels
+Toon bands changed 64726 pixels
+Runtime script errors: 0
