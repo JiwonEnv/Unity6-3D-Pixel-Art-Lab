@@ -13,10 +13,14 @@ namespace PixelArtLab.Editor
         {
             var ground=GameObject.Find("Walkable hills and connected trails");
             var soil=ground.GetComponent<MeshRenderer>().sharedMaterial;
-            var trail=GameObject.Find("Connected dirt trails").GetComponent<MeshRenderer>().sharedMaterial;
-            foreach(var material in new[]{soil,trail}){material.SetFloat("_Puddles",1);material.SetFloat("_PuddleHeight",1.1f);EditorUtility.SetDirty(material);}
+            var trailObject=GameObject.Find("Connected dirt trails");var trail=trailObject.GetComponent<MeshRenderer>().sharedMaterial;
+            // Rendered trail ribbons sit above terrain; footsteps must hit that visible surface.
+            var trailCollider=trailObject.GetComponent<MeshCollider>();if(!trailCollider)trailCollider=trailObject.AddComponent<MeshCollider>();trailCollider.sharedMesh=trailObject.GetComponent<MeshFilter>().sharedMesh;
+            foreach(var material in new[]{soil,trail}){material.SetFloat("_Puddles",1);EditorUtility.SetDirty(material);}
             var reflection=ground.GetComponent<DetailWaterReflection>();if(!reflection)reflection=ground.AddComponent<DetailWaterReflection>();
             reflection.source=camera;reflection.waterMaterial=soil;reflection.additionalMaterials=new[]{trail};reflection.textureProperty="_PuddleReflection";reflection.waterHeight=1.1f;
+            var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();reflection.groundAnchor=env.player.transform;
+            var steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();if(!steps)steps=new GameObject("Puddle footstep rings and splashes").AddComponent<PuddleFootsteps>();steps.player=env.player;steps.environment=env;
             return reflection;
         }
         static Color32[] Render(Camera camera)

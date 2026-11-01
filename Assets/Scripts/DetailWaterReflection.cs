@@ -11,6 +11,7 @@ namespace PixelArtLab
         public string textureProperty="_DetailReflection";
         public float waterHeight=.3f;
         public bool reflections=true;
+        public Transform groundAnchor;
         Camera mirror;
         RenderTexture texture;
         bool rendering;
@@ -22,6 +23,7 @@ namespace PixelArtLab
             if(rendering||!source||!waterMaterial||!reflections)return;
             if(Shader.GetGlobalFloat("_LabReflectionDisabled")>.5)return;
             if(textureProperty=="_PuddleReflection"&&Shader.GetGlobalVector("_LabEnvironment").z<.22f)return;
+            if(groundAnchor&&PuddleSurface.Ground(groundAnchor.position,out var ground))waterHeight=ground.point.y;
             lastTime=Time.unscaledTime;
             if(!mirror){var g=new GameObject("Detail Water Reflection Camera"){hideFlags=HideFlags.HideAndDontSave};mirror=g.AddComponent<Camera>();mirror.enabled=false;}
             if(!texture){texture=new RenderTexture(640,360,24){name="Woodland Planar Reflection",filterMode=FilterMode.Bilinear,hideFlags=HideFlags.HideAndDontSave};texture.Create();}
@@ -39,6 +41,12 @@ namespace PixelArtLab
                 mirror.projectionMatrix=source.CalculateObliqueMatrix(plane);
                 GL.invertCulling=!previous;Shader.SetGlobalFloat("_LabReflectionPass",1);mirror.Render();waterMaterial.SetTexture(textureProperty,texture);
                 if(additionalMaterials!=null)foreach(var material in additionalMaterials)if(material)material.SetTexture(textureProperty,texture);
+                if(textureProperty=="_PuddleReflection")
+                {
+                    var projection=GL.GetGPUProjectionMatrix(mirror.projectionMatrix,true)*mirror.worldToCameraMatrix;
+                    waterMaterial.SetMatrix("_PuddleProjection",projection);waterMaterial.SetFloat("_PuddleCaptureHeight",waterHeight);
+                    if(additionalMaterials!=null)foreach(var material in additionalMaterials)if(material){material.SetMatrix("_PuddleProjection",projection);material.SetFloat("_PuddleCaptureHeight",waterHeight);}
+                }
             }
             finally{GL.invertCulling=previous;Shader.SetGlobalFloat("_LabReflectionPass",previousPass);rendering=false;}
         }

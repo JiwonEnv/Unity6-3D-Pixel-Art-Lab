@@ -3,7 +3,7 @@ PASS Player, objectives and follow camera present
 PASS Terrain raycast finds a collision surface
 Start surface: Walkable hills and connected trails at (0.00, 0.81, -13.00)
 PASS Character settles on terrain
-Settled position: (0.00, 0.75, -13.00); deltaTime=0.0155; respawns=0
+Settled position: (0.00, 0.75, -13.00); deltaTime=0.0167; respawns=0
 PASS Camera-relative walk moves more than 3m
 PASS Sprint is faster than walking
 PASS Solid obstacle blocks walking
@@ -11,7 +11,7 @@ PASS Jump reaches configured height
 PASS Airborne jump request does not double-jump
 PASS Jump clears the obstacle
 PASS Character lands after jumping
-Jump test frame limit: 12fps; maximum frame delta=0.0834
+Jump test frame limit: 12fps; maximum frame delta=0.0838
 PASS Deep water returns player to camp
 PASS All five regions can be discovered
 PASS All three waystones can be collected
@@ -19,4 +19,4 @@ PASS Follow camera centers the player
 PASS Imported character Animator runs
 PASS Idle/walk/run/jump/fall clips played
 Observed clips: Idle, Walking_A, Running_A, Jump_Start, Jump_Idle
-Walk distance 3.95m; sprint 6.40m; jump rise 1.64m
+Walk distance 3.94m; sprint 6.52m; jump rise 1.64m

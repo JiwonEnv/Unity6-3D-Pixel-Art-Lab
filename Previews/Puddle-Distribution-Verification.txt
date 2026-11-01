@@ -1,0 +1,6 @@
+MAPWIDE_PUDDLES_SUCCESS
+Wet samples: 516; outside old height band: 402
+Height range: 0.50m to 7.08m
+Quadrants: 83, 163, 96, 174
+All four quadrants and multiple elevations: PASS
+NO PLAYER BUILD

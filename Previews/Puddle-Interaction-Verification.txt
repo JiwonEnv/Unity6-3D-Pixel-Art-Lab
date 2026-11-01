@@ -1,0 +1,5 @@
+PUDDLE_INTERACTION_SUCCESS
+Walking on visible water emits expanding rings and droplets: PASS
+Stopped rings expire; dry ground and snow suppress splashes: PASS
+Airborne player does not emit water steps: PASS
+Landing in puddle emits a stronger splash: PASS
