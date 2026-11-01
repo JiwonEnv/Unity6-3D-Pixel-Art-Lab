@@ -3,6 +3,7 @@
 float4 _LabEnvironment; // enabled, daylight, wetness, snow
 float4 _LabWind; // world x/z direction, strength, unused
 float _LabWeatherTime, _LabWaterMotion;
+float _LabWaterTime,_LabWaveScale,_LabWaterFlow;
 float4 _LabWindParams; // mode: 1 tree, 2 grass, 3 flag, 4 water; local anchor, inverse extent, phase
 void LabDeformVertex(inout float4 vertex,inout float3 normal,float2 uv)
 {
@@ -12,9 +13,12 @@ void LabDeformVertex(inout float4 vertex,inout float3 normal,float2 uv)
     float mode=_LabWindParams.x;
     if(mode>3.5)
     {
+        t=lerp(t,_LabWaterTime,_LabWaterFlow);
         float a=world.x*.85+t*1.1,b=world.z*1.3-t*1.45;
-        world.y+=(sin(a)*.045+sin(b)*.025)*_LabWaterMotion;
-        float3 waterNormal=normalize(float3(-cos(a)*.03825*_LabWaterMotion,1,-cos(b)*.0325*_LabWaterMotion));
+        float c=(world.x+world.z)*2.1+t*1.7;
+        world.y+=(sin(a)*.045+sin(b)*.025+sin(c)*.008*_LabWaterFlow)*_LabWaterMotion*_LabWaveScale;
+        float dx=cos(a)*.03825+cos(c)*.0168*_LabWaterFlow,dz=cos(b)*.0325+cos(c)*.0168*_LabWaterFlow;
+        float3 waterNormal=normalize(float3(-dx*_LabWaterMotion*_LabWaveScale,1,-dz*_LabWaterMotion*_LabWaveScale));
         normal=normalize(mul(waterNormal,(float3x3)unity_ObjectToWorld));
     }
     else if(mode>.5)

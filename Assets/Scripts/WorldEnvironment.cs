@@ -83,6 +83,7 @@ namespace PixelArtLab
             float gust=windEnabled?windStrength*(1+rain*.65f+snow*.25f):0;
             Shader.SetGlobalVector("_LabWind",new Vector4(windDirection.x,windDirection.y,gust,0));
             Shader.SetGlobalFloat("_LabWeatherTime",Mathf.Floor(animationTime*12)/12);
+            Shader.SetGlobalFloat("_LabWaterTime",animationTime);
             Shader.SetGlobalFloat("_LabWaterMotion",waterEnabled?1:0);
             Shader.SetGlobalFloat("_LabCloudCover",Mathf.Clamp01(.12f+cloud));
             if(torches!=null)foreach(var torch in torches)if(torch)torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
@@ -96,6 +97,7 @@ namespace PixelArtLab
         {
             Shader.SetGlobalVector("_LabEnvironment",Vector4.zero);Shader.SetGlobalVector("_LabWind",Vector4.zero);
             Shader.SetGlobalFloat("_LabWeatherTime",0);Shader.SetGlobalFloat("_LabCloudCover",0);Shader.SetGlobalFloat("_LabWaterMotion",0);
+            Shader.SetGlobalFloat("_LabWaterTime",0);
             if(cached&&sun){sun.color=originalSunColor;sun.intensity=originalIntensity;sun.transform.rotation=originalRotation;}
             if(worldCamera)worldCamera.backgroundColor=originalBackground;RenderSettings.fog=false;
             if(torches!=null)foreach(var torch in torches)if(torch)torch.intensity=2.3f;

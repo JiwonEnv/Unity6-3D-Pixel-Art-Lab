@@ -7,12 +7,30 @@ Shader "PixelArtLab/Sprite Toon"
         _MainTex ("Painted Detail (Optional)", 2D) = "white" {}
         _EmissionColor ("Emission", Color) = (0,0,0,0)
         _LocalLightStrength ("Local Light Strength", Range(0,3)) = 1
+        _SemiPBR ("Semi-real shading blend",Range(0,1))=0
+        _NormalMap ("Surface Normal",2D)="bump"{}
+        _NormalScale ("Normal strength",Range(0,2))=1
+        _SurfaceMap ("AO Roughness Metal (RGB)",2D)="white"{}
+        _UsePackedARM ("Use packed surface map",Float)=0
+        _Roughness ("Roughness multiplier",Range(.08,1))=.75
+        _AOStrength ("AO strength",Range(0,1))=.7
+        _Metallic ("Metallic",Range(0,1))=0
+        _AlphaMask ("Leaf alpha mask",2D)="white"{}
+        _AlphaClip ("Alpha cutout",Float)=0
+        _Cutoff ("Cutout threshold",Range(0,1))=.45
+        _LeafTwoSided ("Leaf light transmission",Range(0,1))=0
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull",Float)=2
+        [HideInInspector] _LabWaveScale("Wave scale",Float)=1
+        [HideInInspector] _LabWaterFlow("Smooth water clock",Float)=0
+        _DetailReflection ("Planar water reflection",2D)="black"{}
+        _ReflectionStrength ("Water reflection strength",Range(0,1))=.6
         [HideInInspector] _LabWindParams("World motion",Vector)=(0,0,1,0)
         [HideInInspector] _LabWaterBounds("Water center and radii",Vector)=(-30,22,11.5,10.5)
         [HideInInspector] _LabObjectData("Object metadata",Vector)=(.00392157,0,.25,1)
     }
     SubShader
     {
+        Cull [_Cull]
         Tags { "RenderType"="Opaque" }
         LOD 200
         CGPROGRAM
@@ -21,39 +39,71 @@ Shader "PixelArtLab/Sprite Toon"
         #include "UnityCG.cginc"
         #include "WorldMotion.cginc"
         sampler2D _MainTex;
+        sampler2D _NormalMap,_SurfaceMap,_AlphaMask,_DetailReflection;
         fixed4 _Color, _ShadeColor, _EmissionColor;
         float _LabContinuous;
         half _LocalLightStrength;
         float4 _LabAmbientTint, _LabWaterBounds;
         float _LabCloudCover;
-        struct Input { float2 uv_MainTex; float3 worldPos; float3 worldNormal; };
+        half _SemiPBR,_NormalScale,_UsePackedARM,_Roughness,_AOStrength,_Metallic,_AlphaClip,_Cutoff,_LeafTwoSided,_ReflectionStrength;
+        float _LabDetailedToon,_LabNormalDisabled,_LabReflectionDisabled;
+        struct Input { float2 uv_MainTex; float3 worldPos; float3 worldNormal; float3 viewDir; float4 screenPos; INTERNAL_DATA };
         void LabVertex(inout appdata_full v){LabDeformVertex(v.vertex,v.normal,v.texcoord.xy);}
+        half DetailBlend(){return _SemiPBR>.001?(_LabDetailedToon>1.5?1:_LabDetailedToon>.5?0:_SemiPBR):0;}
+        half3 SurfaceSpecular(SurfaceOutput s,half3 lightDir,half3 viewDir,half atten)
+        {
+            half3 h=normalize(lightDir+viewDir);half nl=saturate(dot(s.Normal,lightDir));
+            half nv=max(.05,abs(dot(s.Normal,viewDir))),nh=saturate(dot(s.Normal,h)),vh=saturate(dot(viewDir,h));
+            half rough=max(.08,s.Specular),alpha=rough*rough,a2=alpha*alpha;
+            half denom=nh*nh*(a2-1)+1;half d=a2/(UNITY_PI*denom*denom+.0001);
+            half k=(rough+1)*(rough+1)/8;half g=(nl/(nl*(1-k)+k+.001))*(nv/(nv*(1-k)+k));
+            half3 f0=lerp(half3(.04,.04,.04),s.Albedo,_Metallic);half3 f=f0+(1-f0)*pow(1-vh,5);
+            return min(4,d*g*f/(4*nv*max(.03,nl)))*nl*atten*_LightColor0.rgb;
+        }
         half4 LightingSpriteToon(SurfaceOutput s, half3 lightDir, half3 viewDir, half atten)
         {
-            half n = saturate(dot(s.Normal,lightDir));
+            half n = lerp(saturate(dot(s.Normal,lightDir)),abs(dot(s.Normal,lightDir)),_LeafTwoSided);
+            half detail=DetailBlend();
             #ifdef UNITY_PASS_FORWARDADD
             // Toon the surface response, not the distance/shadow attenuation.
             // Quantizing n * atten erased the weak light around a torch.
             half localBand = n < .16 ? 0 : n < .48 ? .48 : n < .78 ? .82 : 1;
-            half localDiffuse = lerp(localBand,n,_LabContinuous);
-            return half4(s.Albedo * _LightColor0.rgb * localDiffuse * atten * _LocalLightStrength,0);
+            half localDiffuse = lerp(localBand,n,max(_LabContinuous,detail));
+            return half4(s.Albedo * _LightColor0.rgb * localDiffuse * atten * _LocalLightStrength+SurfaceSpecular(s,lightDir,viewDir,atten)*detail,0);
             #else
             half energy = n * atten * (1-s.Gloss*.35);
             half band = energy < .16 ? 0 : energy < .48 ? .48 : energy < .78 ? .82 : 1;
-            band = lerp(band, energy, _LabContinuous);
+            band = lerp(band, energy, max(_LabContinuous,detail));
             half3 ramp = lerp(_ShadeColor.rgb, half3(1.04,1.0,.86),band);
             half3 oldLight=ramp*lerp(half3(.9,.95,1.0),_LightColor0.rgb,.38);
             half3 timeLight=lerp(_ShadeColor.rgb*_LabAmbientTint.rgb,_LightColor0.rgb*half3(1.04,1,.86),band);
             half wetSpec=step(.975,dot(normalize(lightDir+viewDir),s.Normal))*n*atten*_LabEnvironment.z*.12;
-            return half4(s.Albedo * lerp(oldLight,timeLight,_LabEnvironment.x)+_LightColor0.rgb*wetSpec,1);
+            half3 transmitted=s.Albedo*_LightColor0.rgb*saturate(-dot(s.Normal,lightDir))*_LeafTwoSided*.14*atten;
+            return half4(s.Albedo * lerp(oldLight,timeLight,_LabEnvironment.x)+_LightColor0.rgb*wetSpec+SurfaceSpecular(s,lightDir,viewDir,atten)*detail+transmitted,1);
             #endif
         }
         void surf(Input IN, inout SurfaceOutput o)
         {
-            o.Albedo = tex2D(_MainTex,IN.uv_MainTex).rgb * _Color.rgb;
+            fixed4 paint=tex2D(_MainTex,IN.uv_MainTex);
+            clip(lerp(1,tex2D(_AlphaMask,IN.uv_MainTex).r,_AlphaClip)-_Cutoff);
+            o.Albedo = paint.rgb * _Color.rgb;
+            half3 normal=UnpackNormal(tex2D(_NormalMap,IN.uv_MainTex));
+            if(_LabWindParams.x>3.5&&_SemiPBR>.01)
+            {
+                float t=lerp(_LabWeatherTime,_LabWaterTime,_LabWaterFlow)*_LabWaterMotion;
+                float2 uv=IN.worldPos.xz*.18;
+                half3 a=UnpackNormal(tex2D(_NormalMap,uv+float2(t*.013,t*.007)));
+                half3 b=UnpackNormal(tex2D(_NormalMap,uv*1.83+float2(-t*.011,t*.009)));
+                normal=normalize(half3(a.xy+b.xy,a.z*b.z));
+            }
+            o.Normal=normalize(lerp(half3(0,0,1),normal,saturate(_NormalScale)*(1-_LabNormalDisabled)));
+            half3 surface=tex2D(_SurfaceMap,IN.uv_MainTex).rgb;
+            o.Specular=clamp(_Roughness*lerp(1,surface.g,_UsePackedARM),.08,1);
+            o.Albedo*=lerp(1,surface.r,_UsePackedARM*_AOStrength);
+            float3 worldNormal=normalize(WorldNormalVector(IN,o.Normal));
             if(_LabEnvironment.x>.5)
             {
-                float top=saturate((IN.worldNormal.y-.20)*1.6);
+                float top=saturate((worldNormal.y-.20)*1.6);
                 float snow=floor(saturate(_LabEnvironment.w*top)*4+.2)/4;
                 float emissive=saturate(max(_EmissionColor.r,max(_EmissionColor.g,_EmissionColor.b))*3);
                 if(_LabWindParams.x<3.5)
@@ -65,7 +115,7 @@ Shader "PixelArtLab/Sprite Toon"
                 o.Gloss=step(.3,cloud)*_LabCloudCover;
                 if(_LabWindParams.x>3.5)
                 {
-                    float waterTime=_LabWeatherTime*_LabWaterMotion;
+                    float waterTime=lerp(_LabWeatherTime,_LabWaterTime,_LabWaterFlow)*_LabWaterMotion;
                     float ripple=sin(IN.worldPos.z*5+sin(IN.worldPos.x*.7+waterTime*.8)*.9-waterTime*1.4);
                     float edge=length((IN.worldPos.xz-_LabWaterBounds.xy)/_LabWaterBounds.zw);
                     float foam=step(.982+sin(waterTime*1.3+IN.worldPos.z*2)*.006,edge);
@@ -73,10 +123,19 @@ Shader "PixelArtLab/Sprite Toon"
                     float age=frac(waterTime*.9+frac(sin(dot(cell,float2(12.9898,78.233)))*43758.5453));
                     float rainRing=(1-step(.035,abs(length(frac(IN.worldPos.xz*.7)-.5)-age*.65)))*(1-age);
                     float glint=step(.985,ripple)*step(.65,sin(IN.worldPos.x*4.8+sin(IN.worldPos.z*1.4)*1.8+waterTime*.6))*.4+rainRing*_LabEnvironment.z*.24;
-                    o.Albedo=lerp(o.Albedo,half3(.65,.83,.80),saturate(glint+foam*.65));
+                    o.Albedo=lerp(o.Albedo,half3(.65,.83,.80),saturate(glint*(1-DetailBlend()*.75)+foam*.65));
                 }
             }
             o.Alpha=1; o.Emission=_EmissionColor.rgb;
+            if(_LabWindParams.x>3.5&&_SemiPBR>.01)
+            {
+                float2 uv=IN.screenPos.xy/IN.screenPos.w;
+                uv+=o.Normal.xy*.018;
+                float3 view=normalize(_WorldSpaceCameraPos-IN.worldPos);
+                float fresnel=.12+.75*pow(1-saturate(dot(worldNormal,view)),4);
+                half3 reflection=tex2D(_DetailReflection,uv).rgb;
+                o.Emission+=reflection*fresnel*_ReflectionStrength*(1-_LabReflectionDisabled)*(.35+.65*_LabEnvironment.y);
+            }
         }
         ENDCG
     }
