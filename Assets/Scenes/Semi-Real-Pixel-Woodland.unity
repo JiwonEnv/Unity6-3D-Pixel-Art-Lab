@@ -1345,6 +1345,7 @@ MonoBehaviour:
   waterHeight: 0.3
   reflections: 1
   groundAnchor: {fileID: 0}
+  groundReceivers: []
 --- !u!1001 &36244178
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7655,12 +7656,12 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 0
+    m_Type: 1
     m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_CustomResolution: 512
+    m_Strength: 0.85
+    m_Bias: 0.025
+    m_NormalBias: 0.1
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -14145,10 +14146,10 @@ Light:
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_CustomResolution: 512
+    m_Strength: 0.85
+    m_Bias: 0.025
+    m_NormalBias: 0.1
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -26402,7 +26403,10 @@ MonoBehaviour:
   textureProperty: _PuddleReflection
   waterHeight: 1.1
   reflections: 1
-  groundAnchor: {fileID: 728546662}
+  groundAnchor: {fileID: 0}
+  groundReceivers:
+  - {fileID: 642748285}
+  - {fileID: 323728745}
 --- !u!1001 &643770279
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54012,10 +54016,10 @@ Light:
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_CustomResolution: 512
+    m_Strength: 0.85
+    m_Bias: 0.025
+    m_NormalBias: 0.1
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -75347,10 +75351,10 @@ Light:
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_CustomResolution: 512
+    m_Strength: 0.85
+    m_Bias: 0.025
+    m_NormalBias: 0.1
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1

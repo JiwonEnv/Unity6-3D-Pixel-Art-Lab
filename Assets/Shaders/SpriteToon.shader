@@ -83,7 +83,10 @@ Shader "PixelArtLab/Sprite Toon"
             band = lerp(band, energy, max(_LabContinuous,detail));
             half3 ramp = lerp(_ShadeColor.rgb, half3(1.04,1.0,.86),band);
             half3 oldLight=ramp*lerp(half3(.9,.95,1.0),_LightColor0.rgb,.38);
-            half3 timeLight=lerp(_ShadeColor.rgb*_LabAmbientTint.rgb,_LightColor0.rgb*half3(1.04,1,.86),band);
+            // Shadow is ambient; visible direct light only ADDS energy. Interpolating
+            // toward a dim sunset/moon color could previously brighten the shadow.
+            half3 ambient=_ShadeColor.rgb*_LabAmbientTint.rgb*lerp(.24,1,_LabEnvironment.y);
+            half3 timeLight=ambient+_LightColor0.rgb*half3(1.04,1,.86)*band*.65;
             half wetSpec=step(.975,dot(normalize(lightDir+viewDir),s.Normal))*n*atten*_LabEnvironment.z*.12;
             half3 transmitted=s.Albedo*_LightColor0.rgb*saturate(-dot(s.Normal,lightDir))*_LeafTwoSided*.14*atten;
             return half4(s.Albedo * lerp(oldLight,timeLight,_LabEnvironment.x)+_LightColor0.rgb*wetSpec+SurfaceSpecular(s,lightDir,viewDir,atten)*detail+transmitted,1);
@@ -147,7 +150,9 @@ Shader "PixelArtLab/Sprite Toon"
             o.Alpha=1; o.Emission=_EmissionColor.rgb;
             if(pool>.001&&_LabReflectionPass<.5)
             {
-                float4 puddleClip=mul(_PuddleProjection,float4(IN.worldPos.x,_PuddleCaptureHeight,IN.worldPos.z,1));
+                // Preserve actual receiver height: flattening y to the capture plane
+                // compensated only half the offset and detached distant reflections.
+                float4 puddleClip=mul(_PuddleProjection,float4(IN.worldPos,1));
                 float2 uv=puddleClip.xy/puddleClip.w*.5+.5+o.Normal.xy*.012;
                 half3 reflected=tex2D(_PuddleReflection,uv).rgb;
                 float reflectionAmount=pool*(.55+.25*pow(1-saturate(dot(geometryNormal,normalize(_WorldSpaceCameraPos-IN.worldPos))),4))*(1-_LabReflectionDisabled);

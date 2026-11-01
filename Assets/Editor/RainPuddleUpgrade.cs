@@ -19,7 +19,8 @@ namespace PixelArtLab.Editor
             foreach(var material in new[]{soil,trail}){material.SetFloat("_Puddles",1);EditorUtility.SetDirty(material);}
             var reflection=ground.GetComponent<DetailWaterReflection>();if(!reflection)reflection=ground.AddComponent<DetailWaterReflection>();
             reflection.source=camera;reflection.waterMaterial=soil;reflection.additionalMaterials=new[]{trail};reflection.textureProperty="_PuddleReflection";reflection.waterHeight=1.1f;
-            var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();reflection.groundAnchor=env.player.transform;
+            reflection.groundReceivers=new Renderer[]{ground.GetComponent<MeshRenderer>(),trailObject.GetComponent<MeshRenderer>()};
+            var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();reflection.groundAnchor=null;
             var steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();if(!steps)steps=new GameObject("Puddle footstep rings and splashes").AddComponent<PuddleFootsteps>();steps.player=env.player;steps.environment=env;
             var snow=UnityEngine.Object.FindFirstObjectByType<SnowFootprints>();if(!snow)snow=new GameObject("Fading snow footprints").AddComponent<SnowFootprints>();snow.player=env.player;snow.environment=env;
             foreach(var renderer in env.player.GetComponentsInChildren<Renderer>(true)){renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;renderer.receiveShadows=true;if(renderer is SkinnedMeshRenderer skin)skin.updateWhenOffscreen=true;}
