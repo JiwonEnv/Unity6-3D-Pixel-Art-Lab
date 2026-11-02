@@ -61,17 +61,14 @@ namespace PixelArtLab
                 // No global height clip for puddles: it deleted low flowers on lower hills.
                 // Hide only the receiving terrain to prevent it blocking the below-ground view.
                 if(puddle&&groundReceivers!=null)for(int i=0;i<groundReceivers.Length;i++)if(groundReceivers[i]){receiverStates[i]=groundReceivers[i].forceRenderingOff;groundReceivers[i].forceRenderingOff=true;}
-                GL.invertCulling=!previous;Shader.SetGlobalFloat("_LabReflectionPass",1);mirror.Render();waterMaterial.SetTexture(textureProperty,texture);
+                GL.invertCulling=!previous;Shader.SetGlobalFloat("_LabReflectionPass",1);LabCameraRender.Render(mirror);waterMaterial.SetTexture(textureProperty,texture);
                 if(additionalMaterials!=null)foreach(var material in additionalMaterials)if(material)material.SetTexture(textureProperty,texture);
                 // Texture UVs use bottom-left viewport space; render-into-texture GPU projection
                 // flips Y on D3D and would sample the opposite side of this reflection.
                 var projection=GL.GetGPUProjectionMatrix(mirror.projectionMatrix,false)*mirror.worldToCameraMatrix;
-                if(textureProperty=="_PuddleReflection")
-                {
-                    waterMaterial.SetMatrix("_PuddleProjection",projection);waterMaterial.SetFloat("_PuddleCaptureHeight",waterHeight);
-                    if(additionalMaterials!=null)foreach(var material in additionalMaterials)if(material){material.SetMatrix("_PuddleProjection",projection);material.SetFloat("_PuddleCaptureHeight",waterHeight);}
-                }
-                else{waterMaterial.SetMatrix("_DetailProjection",projection);waterMaterial.SetFloat("_DetailCaptureHeight",waterHeight);}
+                // Globals keep Sprite Toon's per-material buffer SRP Batcher compatible.
+                if(puddle){Shader.SetGlobalMatrix("_PuddleProjection",projection);Shader.SetGlobalFloat("_PuddleCaptureHeight",waterHeight);}
+                else{Shader.SetGlobalMatrix("_DetailProjection",projection);Shader.SetGlobalFloat("_DetailCaptureHeight",waterHeight);}
             }
             finally{if(textureProperty=="_PuddleReflection"&&groundReceivers!=null)for(int i=0;i<groundReceivers.Length;i++)if(groundReceivers[i])groundReceivers[i].forceRenderingOff=receiverStates[i];GL.invertCulling=previous;Shader.SetGlobalFloat("_LabReflectionPass",previousPass);rendering=false;}
         }

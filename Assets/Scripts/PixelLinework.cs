@@ -1,7 +1,10 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace PixelArtLab
 {
+    // Settings and persistent buffers for the object-aware ink. The URP passes live in
+    // PixelArtLabRendererFeature, which runs only on cameras that carry this component.
     [ExecuteAlways, RequireComponent(typeof(Camera))]
     public class PixelLinework : MonoBehaviour
     {
@@ -14,65 +17,50 @@ namespace PixelArtLab
         public float depthThreshold=.16f;
         [Range(0,1)] public float normalThreshold=.32f;
         Material material;
-        Camera identityCamera;
         RenderTexture identities;
         RenderTexture sceneDepthNormals;
+        RTHandle identityHandle,geometryHandle;
         public RenderTexture IdentityBuffer=>identities;
         public RenderTexture AnimatedGeometryBuffer=>sceneDepthNormals;
-        void OnEnable() { GetComponent<Camera>().depthTextureMode |= DepthTextureMode.DepthNormals; }
-        void OnRenderImage(RenderTexture src,RenderTexture dst)
+        internal Material LineMaterial=>material;
+        internal RTHandle IdentityHandle=>identityHandle;
+        internal RTHandle GeometryHandle=>geometryHandle;
+        // Identity and depth/normal buffers stay persistent so verification can read them back.
+        internal bool Prepare(int width,int height,float farPlane)
         {
-            if(!linework || !lineShader || !lineShader.isSupported) { Graphics.Blit(src,dst); return; }
+            if(!linework || !lineShader || !lineShader.isSupported || !identityShader || !identityShader.isSupported) return false;
             if(!material) material=new Material(lineShader) { hideFlags=HideFlags.HideAndDontSave };
-            bool metadata=identityShader&&identityShader.isSupported;
-            bool useIds=objectBoundaries && metadata;
-            if(metadata)
+            if(!identities || identities.width!=width || identities.height!=height)
             {
-                if(!identities || identities.width!=src.width || identities.height!=src.height)
-                {
-                    ReleaseIdentityTexture();
-                    identities=new RenderTexture(src.width,src.height,24,RenderTextureFormat.ARGB32,RenderTextureReadWrite.Linear)
-                        {name="Object ID + Line Policy",filterMode=FilterMode.Point,antiAliasing=1,hideFlags=HideFlags.HideAndDontSave};
-                    identities.Create();
-                    sceneDepthNormals=new RenderTexture(src.width,src.height,24,RenderTextureFormat.ARGB32,RenderTextureReadWrite.Linear)
-                        {name="Animated World Depth Normals",filterMode=FilterMode.Point,antiAliasing=1,hideFlags=HideFlags.HideAndDontSave};
-                    sceneDepthNormals.Create();
-                }
-                if(!identityCamera)
-                {
-                    var g=new GameObject("Object Identity Camera"){hideFlags=HideFlags.HideAndDontSave};
-                    identityCamera=g.AddComponent<Camera>();identityCamera.enabled=false;
-                }
-                var camera=GetComponent<Camera>();identityCamera.CopyFrom(camera);
-                identityCamera.transform.SetPositionAndRotation(camera.transform.position,camera.transform.rotation);
-                identityCamera.enabled=false;identityCamera.depthTextureMode=DepthTextureMode.None;
-                identityCamera.clearFlags=CameraClearFlags.SolidColor;identityCamera.backgroundColor=Color.clear;
-                identityCamera.allowHDR=false;identityCamera.allowMSAA=false;identityCamera.targetTexture=identities;
-                Shader.SetGlobalFloat("_LabRenderDepthNormals",0);
-                identityCamera.RenderWithShader(identityShader,"RenderType");
-                material.SetTexture("_ObjectIdentityTexture",identities);
-                identityCamera.targetTexture=sceneDepthNormals;identityCamera.backgroundColor=new Color(.5f,.5f,1,1);
-                try{Shader.SetGlobalFloat("_LabRenderDepthNormals",1);identityCamera.RenderWithShader(identityShader,"RenderType");}
-                finally{Shader.SetGlobalFloat("_LabRenderDepthNormals",0);}
-                material.SetTexture("_LabSceneDepthNormals",sceneDepthNormals);
+                ReleaseIdentityTexture();
+                identities=new RenderTexture(width,height,0,RenderTextureFormat.ARGB32,RenderTextureReadWrite.Linear)
+                    {name="Object ID + Line Policy",filterMode=FilterMode.Point,antiAliasing=1,hideFlags=HideFlags.HideAndDontSave};
+                identities.Create();
+                sceneDepthNormals=new RenderTexture(width,height,0,RenderTextureFormat.ARGB32,RenderTextureReadWrite.Linear)
+                    {name="Animated World Depth Normals",filterMode=FilterMode.Point,antiAliasing=1,hideFlags=HideFlags.HideAndDontSave};
+                sceneDepthNormals.Create();
+                identityHandle=RTHandles.Alloc(identities);geometryHandle=RTHandles.Alloc(sceneDepthNormals);
             }
-            material.SetFloat("_HasSceneDepthNormals",metadata?1:0);
+            bool useIds=objectBoundaries;
             material.SetFloat("_UseObjectIds",useIds?1:0);
             material.SetFloat("_DebugObjectIds",debugIdentities && useIds?1:0);
             material.SetFloat("_DepthThreshold",depthThreshold);
             material.SetFloat("_NormalThreshold",normalThreshold);
             material.SetFloat("_LineStrength",strength);
-            Graphics.Blit(src,dst,material);
+            material.SetFloat("_LabFarPlane",farPlane);
+            material.SetVector("_LabTexel",new Vector4(1f/width,1f/height,width,height));
+            return true;
         }
         void ReleaseIdentityTexture()
         {
+            // RTHandles wrapping an external texture do not own it.
+            identityHandle?.Release();geometryHandle?.Release();identityHandle=null;geometryHandle=null;
             if(identities){identities.Release();if(Application.isPlaying)Destroy(identities);else DestroyImmediate(identities);identities=null;}
             if(sceneDepthNormals){sceneDepthNormals.Release();if(Application.isPlaying)Destroy(sceneDepthNormals);else DestroyImmediate(sceneDepthNormals);sceneDepthNormals=null;}
         }
         void OnDisable()
         {
             ReleaseIdentityTexture();
-            if(identityCamera){if(Application.isPlaying)Destroy(identityCamera.gameObject);else DestroyImmediate(identityCamera.gameObject);}
             if(material) { if(Application.isPlaying) Destroy(material); else DestroyImmediate(material); }
         }
     }

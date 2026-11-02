@@ -10,7 +10,7 @@ namespace PixelArtLab.Editor
     {
         static Color32[] Read(RenderTexture target)
         {var old=RenderTexture.active;RenderTexture.active=target;var t=new Texture2D(target.width,target.height,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,target.width,target.height),0,0);t.Apply();var data=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=old;return data;}
-        static Color32[] Render(Camera camera){camera.Render();return Read(camera.targetTexture);}
+        static Color32[] Render(Camera camera){LabCameraRender.Render(camera);return Read(camera.targetTexture);}
         static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();
         static float Luma(Color32 c)=>(c.r*.2126f+c.g*.7152f+c.b*.0722f)/255;
         static void Require(bool c,string message){if(!c)throw new Exception(message);}
@@ -29,7 +29,7 @@ namespace PixelArtLab.Editor
             foreach(var focus in positions)
             {
                 env.player.transform.position=focus;camera.orthographicSize=focus.x<0?6:5;camera.transform.position=fence.position+Vector3.up*.6f-camera.transform.forward*45;reflection.Refresh();Require(Mathf.Abs(reflection.waterHeight-height)<.001f,"Mirror plane still follows player");
-                var matrix=reflection.waterMaterial.GetMatrix("_PuddleProjection");var p=fence.position;var marker=GameObject.CreatePrimitive(PrimitiveType.Cube);marker.transform.position=p+Vector3.up*.08f;marker.transform.localScale=Vector3.one*.1f;var mat=new Material(Shader.Find("Unlit/Color"));mat.color=Color.magenta;marker.GetComponent<Renderer>().sharedMaterial=mat;reflection.Refresh();
+                var matrix=Shader.GetGlobalMatrix("_PuddleProjection");var p=fence.position;var marker=GameObject.CreatePrimitive(PrimitiveType.Cube);marker.transform.position=p+Vector3.up*.08f;marker.transform.localScale=Vector3.one*.1f;var mat=new Material(Shader.Find("Universal Render Pipeline/Unlit"));mat.color=Color.magenta;marker.GetComponent<Renderer>().sharedMaterial=mat;reflection.Refresh();
                 var data=Read(reflection.ReflectionTexture);float x=0,y=0,n=0;for(int row=0;row<reflection.ReflectionTexture.height;row++)for(int col=0;col<reflection.ReflectionTexture.width;col++){var c=data[row*reflection.ReflectionTexture.width+col];if(c.r>200&&c.b>200&&c.g<70){x+=col;y+=row;n++;}}
                 var clip=matrix*new Vector4(marker.transform.position.x,marker.transform.position.y,marker.transform.position.z,1);Require(n>0&&Mathf.Abs(x/n/reflection.ReflectionTexture.width-(clip.x/clip.w*.5f+.5f))<.01f&&Mathf.Abs(y/n/reflection.ReflectionTexture.height-(clip.y/clip.w*.5f+.5f))<.01f,"Far receiver projection mismatch");UnityEngine.Object.DestroyImmediate(marker);UnityEngine.Object.DestroyImmediate(mat);
             }

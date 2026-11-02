@@ -26,9 +26,8 @@ namespace PixelArtLab
         public string ClockLabel=>$"{Mathf.FloorToInt(hour):00}:{Mathf.FloorToInt((hour%1)*60):00}";
         void OnEnable()
         {
-            // Follow camera sits 45m away; a 42m shadow distance cannot reach the ground.
-            QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=120;
-            QualitySettings.shadowResolution=ShadowResolution.VeryHigh;QualitySettings.shadowCascades=4;QualitySettings.pixelLightCount=4;
+            // Shadow distance (120m: the follow camera sits 45m away), cascades and the
+            // per-pixel light limit live on the URP asset in Assets/Settings.
             if(!sun)sun=RenderSettings.sun;
             if(!worldCamera)worldCamera=Camera.main;
             if(sun){originalSunColor=sun.color;originalIntensity=sun.intensity;originalRotation=sun.transform.rotation;cached=true;}

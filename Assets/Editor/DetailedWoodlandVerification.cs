@@ -16,7 +16,7 @@ namespace PixelArtLab.Editor
             var t=new Texture2D(target.width,target.height,TextureFormat.RGB24,false);
             t.ReadPixels(new Rect(0,0,target.width,target.height),0,0);t.Apply();var data=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=previous;return data;
         }
-        static Color32[] Render(Camera camera){camera.Render();return Read(camera.targetTexture);}
+        static Color32[] Render(Camera camera){LabCameraRender.Render(camera);return Read(camera.targetTexture);}
         static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();
         static void Require(bool value,string message){if(!value)throw new Exception(message);}
         public static void Run()

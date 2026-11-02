@@ -401,7 +401,7 @@ namespace PixelArtLab.Editor
         }
         public static void Capture(Camera cam,string path)
         {
-            var rt=new RenderTexture(640,360,24){filterMode=FilterMode.Point};cam.targetTexture=rt;cam.Render();RenderTexture.active=rt;
+            var rt=new RenderTexture(640,360,24){filterMode=FilterMode.Point};cam.targetTexture=rt;LabCameraRender.Render(cam);RenderTexture.active=rt;
             var tex=new Texture2D(640,360,TextureFormat.RGB24,false);tex.ReadPixels(new Rect(0,0,640,360),0,0);tex.Apply();File.WriteAllBytes(path,tex.EncodeToPNG());
             cam.targetTexture=null;RenderTexture.active=null;rt.Release();UnityEngine.Object.DestroyImmediate(rt);UnityEngine.Object.DestroyImmediate(tex);
         }

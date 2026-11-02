@@ -29,7 +29,7 @@ namespace PixelArtLab.Editor
         }
         static Color32[] Render(Camera camera)
         {
-            camera.Render();var previous=RenderTexture.active;RenderTexture.active=camera.targetTexture;
+            LabCameraRender.Render(camera);var previous=RenderTexture.active;RenderTexture.active=camera.targetTexture;
             var t=new Texture2D(640,360,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,640,360),0,0);t.Apply();var pixels=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=previous;return pixels;
         }
         static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();

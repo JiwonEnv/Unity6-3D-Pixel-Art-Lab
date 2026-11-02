@@ -10,7 +10,7 @@ namespace PixelArtLab.Editor
     public static class PlayerVisibilityVerification
     {
         static Color32[] Read(RenderTexture target){var old=RenderTexture.active;RenderTexture.active=target;var t=new Texture2D(target.width,target.height,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,target.width,target.height),0,0);t.Apply();var data=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=old;return data;}
-        static Color32[] Render(Camera camera){camera.Render();return Read(camera.targetTexture);}
+        static Color32[] Render(Camera camera){LabCameraRender.Render(camera);return Read(camera.targetTexture);}
         static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();
         static int Visible(Camera c,int id)=>Read(c.GetComponent<PixelLinework>().IdentityBuffer).Count(p=>p.r+p.g*256==id);
         static void Require(bool c,string message){if(!c)throw new Exception(message);}

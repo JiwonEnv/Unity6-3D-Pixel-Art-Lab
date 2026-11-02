@@ -10,7 +10,7 @@ namespace PixelArtLab.Editor
     {
         static Color32[] Render(Camera camera)
         {
-            camera.Render();var old=RenderTexture.active;RenderTexture.active=camera.targetTexture;var t=new Texture2D(640,360,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,640,360),0,0);t.Apply();var data=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=old;return data;
+            LabCameraRender.Render(camera);var old=RenderTexture.active;RenderTexture.active=camera.targetTexture;var t=new Texture2D(640,360,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,640,360),0,0);t.Apply();var data=t.GetPixels32();UnityEngine.Object.DestroyImmediate(t);RenderTexture.active=old;return data;
         }
         static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();
         static float Bright(Color32 c)=>c.r*.2126f+c.g*.7152f+c.b*.0722f;

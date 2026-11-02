@@ -112,7 +112,7 @@ namespace PixelArtLab.Editor
         {
             string path=Generated+"/"+name+".mat";
             var mat=AssetDatabase.LoadAssetAtPath<Material>(path);
-            if(!mat) { mat=new Material(Shader.Find("Standard")); AssetDatabase.CreateAsset(mat,path); }
+            if(!mat) { mat=new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(mat,path); }
             mat.color=color; mat.SetFloat("_Glossiness",0);
             if(!emission && name!="River")
             {
@@ -211,7 +211,7 @@ namespace PixelArtLab.Editor
         {
             Directory.CreateDirectory("Previews");
             var rt=new RenderTexture(640,360,24);rt.filterMode=FilterMode.Point;
-            cam.targetTexture=rt;cam.Render();RenderTexture.active=rt;
+            cam.targetTexture=rt;LabCameraRender.Render(cam);RenderTexture.active=rt;
             var tex=new Texture2D(640,360,TextureFormat.RGB24,false);tex.ReadPixels(new Rect(0,0,640,360),0,0);tex.Apply();
             File.WriteAllBytes("Previews/3D-Pixel-Art-Lighting-Study.png",tex.EncodeToPNG());
             cam.targetTexture=null;RenderTexture.active=null;rt.Release();Object.DestroyImmediate(rt);Object.DestroyImmediate(tex);

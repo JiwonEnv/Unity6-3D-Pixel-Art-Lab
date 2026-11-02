@@ -16,7 +16,7 @@ namespace PixelArtLab.Editor
             var rt=reflection.ReflectionTexture;var before=RenderTexture.active;RenderTexture.active=rt;var t=new Texture2D(rt.width,rt.height,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,rt.width,rt.height),0,0);t.Apply();File.WriteAllBytes("Previews/34-Reflection-Diagnostic.png",t.EncodeToPNG());Object.DestroyImmediate(t);RenderTexture.active=before;
             // Locate an isolated emissive marker's actual texture coordinates versus CPU projection.
             var marker=GameObject.CreatePrimitive(PrimitiveType.Cube);marker.transform.position=env.player.transform.position+new Vector3(1,2,0);marker.transform.localScale=Vector3.one*.25f;
-            var mat=new Material(Shader.Find("Unlit/Color"));mat.color=Color.magenta;marker.GetComponent<Renderer>().sharedMaterial=mat;reflection.Refresh();
+            var mat=new Material(Shader.Find("Universal Render Pipeline/Unlit"));mat.color=Color.magenta;marker.GetComponent<Renderer>().sharedMaterial=mat;reflection.Refresh();
             RenderTexture.active=rt;t=new Texture2D(rt.width,rt.height,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,rt.width,rt.height),0,0);t.Apply();var pixels=t.GetPixels32();float x=0,y=0,n=0;
             for(int j=0;j<rt.height;j++)for(int i=0;i<rt.width;i++){var c=pixels[j*rt.width+i];if(c.r>200&&c.b>200&&c.g<80){x+=i;y+=j;n++;}}
             var mirror=Resources.FindObjectsOfTypeAll<Camera>().First(c=>c.name=="Detail Water Reflection Camera"&&c.targetTexture==rt);var cpu=mirror.WorldToViewportPoint(marker.transform.position);var gpu=GL.GetGPUProjectionMatrix(mirror.projectionMatrix,true)*mirror.worldToCameraMatrix*new Vector4(marker.transform.position.x,marker.transform.position.y,marker.transform.position.z,1);
@@ -47,7 +47,7 @@ namespace PixelArtLab.Editor
             File.WriteAllText("Previews/Reflection-Shadow-Verification.txt",$"REFLECTION_SHADOW_SUCCESS\nReflection marker coordinates match within 1%: PASS\nCharacter reflection texture pixels: {characterPixels}\nCharacter reflection on actual puddle pixels: {visibleCharacter}\nCharacter shadow pixels: {playerShadow}\nTree shadow pixels: {treeShadow}\nNight torch shadow pixels: {torchShadow}\nShadow distance: {QualitySettings.shadowDistance}m\nNO PLAYER BUILD\n");Debug.Log("REFLECTION_SHADOW_SUCCESS");
         }
         static Color32[] Read(RenderTexture rt){var old=RenderTexture.active;RenderTexture.active=rt;var t=new Texture2D(rt.width,rt.height,TextureFormat.RGB24,false);t.ReadPixels(new Rect(0,0,rt.width,rt.height),0,0);t.Apply();var p=t.GetPixels32();Object.DestroyImmediate(t);RenderTexture.active=old;return p;}
-        static Color32[] Render(Camera c){c.Render();return Read(c.targetTexture);}
+        static Color32[] Render(Camera c){LabCameraRender.Render(c);return Read(c.targetTexture);}
         static int Difference(Color32[] a,Color32[] b)=>a.Zip(b,(x,y)=>Mathf.Abs(x.r-y.r)+Mathf.Abs(x.g-y.g)+Mathf.Abs(x.b-y.b)>8?1:0).Sum();
     }
 }

@@ -1,14 +1,16 @@
 #ifndef PIXEL_LAB_WORLD_MOTION
 #define PIXEL_LAB_WORLD_MOTION
+// URP HLSL. The including shader declares the per-material values
+// (_LabWaveScale, _LabWaterFlow, _LabWindParams) in its UnityPerMaterial buffer.
 float4 _LabEnvironment; // enabled, daylight, wetness, snow
 float4 _LabWind; // world x/z direction, strength, unused
 float _LabWeatherTime, _LabWaterMotion;
-float _LabWaterTime,_LabWaveScale,_LabWaterFlow;
-float4 _LabWindParams; // mode: 1 tree, 2 grass, 3 flag, 4 water; local anchor, inverse extent, phase
+float _LabWaterTime;
+// _LabWindParams mode: 1 tree, 2 grass, 3 flag, 4 water; local anchor, inverse extent, phase
 void LabDeformVertex(inout float4 vertex,inout float3 normal,float2 uv)
 {
     if(_LabEnvironment.x<.5)return;
-    float3 world=mul(unity_ObjectToWorld,vertex).xyz;
+    float3 world=mul(UNITY_MATRIX_M,vertex).xyz;
     float t=_LabWeatherTime;
     float mode=_LabWindParams.x;
     if(mode>3.5)
@@ -19,7 +21,7 @@ void LabDeformVertex(inout float4 vertex,inout float3 normal,float2 uv)
         world.y+=(sin(a)*.045+sin(b)*.025+sin(c)*.008*_LabWaterFlow)*_LabWaterMotion*_LabWaveScale;
         float dx=cos(a)*.03825+cos(c)*.0168*_LabWaterFlow,dz=cos(b)*.0325+cos(c)*.0168*_LabWaterFlow;
         float3 waterNormal=normalize(float3(-dx*_LabWaterMotion*_LabWaveScale,1,-dz*_LabWaterMotion*_LabWaveScale));
-        normal=normalize(mul(waterNormal,(float3x3)unity_ObjectToWorld));
+        normal=normalize(mul(waterNormal,(float3x3)UNITY_MATRIX_M));
     }
     else if(mode>.5)
     {
@@ -37,6 +39,6 @@ void LabDeformVertex(inout float4 vertex,inout float3 normal,float2 uv)
         world.xz+=direction*wave*weight*amplitude*_LabWind.z;
         world.y+=abs(wave)*weight*.025*_LabWind.z;
     }
-    vertex=mul(unity_WorldToObject,float4(world,1));
+    vertex=mul(UNITY_MATRIX_I_M,float4(world,1));
 }
 #endif

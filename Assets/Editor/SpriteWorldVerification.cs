@@ -44,7 +44,7 @@ namespace PixelArtLab.Editor
         }
         static Color32[] Render(Camera camera)
         {
-            camera.Render();var prior=RenderTexture.active;RenderTexture.active=camera.targetTexture;
+            LabCameraRender.Render(camera);var prior=RenderTexture.active;RenderTexture.active=camera.targetTexture;
             var tex=new Texture2D(camera.targetTexture.width,camera.targetTexture.height,TextureFormat.RGB24,false);
             tex.ReadPixels(new Rect(0,0,tex.width,tex.height),0,0);tex.Apply();var pixels=tex.GetPixels32();
             UnityEngine.Object.Destroy(tex);RenderTexture.active=prior;return pixels;

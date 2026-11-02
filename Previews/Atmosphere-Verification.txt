@@ -1,10 +1,10 @@
 ATMOSPHERE_PLAYMODE_SUCCESS
-Day/night mean brightness: 0.465/0.183; night torches: PASS
+Day/night mean brightness: 0.396/0.190; night torches: PASS
 Warm sunset key and long-angle sun: PASS
 Rain: 320 source-pixel streaks, wet surfaces and splashes PASS
 Snow: 220 two-pixel flakes and upward-facing coverage PASS
-Wind changed 2629 pixels; wind-off frozen PASS
-Flag changed 3069 pixels; identity silhouette delta 1479 PASS
+Wind changed 3781 pixels; wind-off frozen PASS
+Flag changed 3001 pixels; identity silhouette delta 1479 PASS
 Water changed 5532 pixels; identity silhouette delta 705 PASS
 Animated identity/depth buffers: PASS
 Runtime errors: 0

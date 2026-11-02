@@ -1,58 +1,67 @@
 Shader "Hidden/PixelArtLab/Linework"
 {
-    Properties { _MainTex("Scene",2D)="white"{} }
     SubShader
     {
+        Tags { "RenderPipeline"="UniversalPipeline" }
         Cull Off ZWrite Off ZTest Always
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert_img
+            Name "Linework"
+            HLSLPROGRAM
+            #pragma vertex Vert
             #pragma fragment frag
-            #pragma target 3.0
-            #include "UnityCG.cginc"
-            sampler2D _MainTex, _CameraDepthNormalsTexture;
-            sampler2D _ObjectIdentityTexture;
-            sampler2D _LabSceneDepthNormals;
-            float _HasSceneDepthNormals;
-            float4 SceneGeometry(float2 uv){return _HasSceneDepthNormals>.5?tex2D(_LabSceneDepthNormals,uv):tex2D(_CameraDepthNormalsTexture,uv);}
-            float4 _MainTex_TexelSize;
-            float _DepthThreshold, _NormalThreshold, _LineStrength;
-            float _UseObjectIds, _DebugObjectIds;
-            float4 frag(v2f_img i):SV_Target
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+            TEXTURE2D(_ObjectIdentityTexture);
+            TEXTURE2D(_LabSceneDepthNormals);
+            float4 _LabTexel; // 1/width, 1/height of the source pixel buffer
+            float _LabFarPlane;
+            float _DepthThreshold,_NormalThreshold,_LineStrength;
+            float _UseObjectIds,_DebugObjectIds;
+            void DecodeDepthNormal(float4 enc,out float depth,out float3 normal)
             {
-                float4 color=tex2D(_MainTex,i.uv);
-                float depth; float3 normal;
-                DecodeDepthNormal(SceneGeometry(i.uv),depth,normal);
-                float4 objectData=tex2D(_ObjectIdentityTexture,i.uv);
+                depth=dot(enc.zw,float2(1,1/255.0));
+                float3 nn=enc.xyz*float3(3.5554,3.5554,0)+float3(-1.7777,-1.7777,1);
+                float g=2/dot(nn.xyz,nn.xyz);normal=float3(g*nn.xy,g-1);
+            }
+            float4 Geometry(float2 uv){return SAMPLE_TEXTURE2D(_LabSceneDepthNormals,sampler_PointClamp,uv);}
+            float4 Identity(float2 uv){return SAMPLE_TEXTURE2D(_ObjectIdentityTexture,sampler_PointClamp,uv);}
+            float4 frag(Varyings input):SV_Target
+            {
+                float2 uv=input.texcoord;
+                float4 color=SAMPLE_TEXTURE2D_X(_BlitTexture,sampler_PointClamp,uv);
+                float depth;float3 normal;
+                DecodeDepthNormal(Geometry(uv),depth,normal);
+                float4 objectData=Identity(uv);
                 float id=round(objectData.r*255)+round(objectData.g*255)*256;
                 if(_DebugObjectIds>.5)
                 {
                     float3 hue=abs(frac(frac(id*.618034)+float3(0,2.0/3,1.0/3))*6-3);
                     return float4(id>.5?lerp(float3(.20,.20,.20),saturate(hue-1),.8):float3(.04,.04,.06),1);
                 }
-                float outline=0, ridge=0, boundary=0;
+                float outline=0,ridge=0,boundary=0;
                 const float2 offsets[4]={float2(1,0),float2(-1,0),float2(0,1),float2(0,-1)};
                 for(int k=0;k<4;k++)
                 {
+                    float2 sampleUv=uv+offsets[k]*_LabTexel.xy;
                     float d;float3 n;
-                    DecodeDepthNormal(SceneGeometry(i.uv+offsets[k]*abs(_MainTex_TexelSize.xy)),d,n);
-                    float4 other=tex2D(_ObjectIdentityTexture,i.uv+offsets[k]*abs(_MainTex_TexelSize.xy));
+                    DecodeDepthNormal(Geometry(sampleUv),d,n);
+                    float4 other=Identity(sampleUv);
                     float otherId=round(other.r*255)+round(other.g*255)*256;
                     float separate=step(.5,abs(id-otherId));
                     // The ID boundary belongs to the closer object. Equal-depth ties go to lower ID.
-                    float front=(abs(d-depth)*_ProjectionParams.z<.015)?step(id+.5,otherId):step(depth,d);
+                    float front=(abs(d-depth)*_LabFarPlane<.015)?step(id+.5,otherId):step(depth,d);
                     boundary=max(boundary,separate*front*objectData.a*step(.5,id));
                     // Only the foreground pixel owns a depth boundary: one source-pixel ink.
-                    outline=max(outline,step(_DepthThreshold,(d-depth)*_ProjectionParams.z));
-                    ridge=max(ridge,step(_NormalThreshold,1-dot(normal,n))*step(abs(d-depth)*_ProjectionParams.z,.24));
+                    outline=max(outline,step(_DepthThreshold,(d-depth)*_LabFarPlane));
+                    ridge=max(ridge,step(_NormalThreshold,1-dot(normal,n))*step(abs(d-depth)*_LabFarPlane,.24));
                 }
                 float interior=lerp(1,objectData.b,_UseObjectIds);
                 float ink=saturate(max(max(outline,ridge*.48)*interior,boundary*_UseObjectIds))*_LineStrength;
                 color.rgb=lerp(color.rgb,color.rgb*float3(.37,.32,.51),ink);
                 return color;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }
