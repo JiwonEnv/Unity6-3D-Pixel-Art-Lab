@@ -112,14 +112,14 @@ namespace PixelArtLab.Editor
         }
 
         // Play-mode captures of the live pixel buffer (post-processing only runs there).
-        // Writes Previews/Lighting/<hour>[-flat].png and a luminance report.
+        // Writes Previews/Lighting/<shot>[-no-post|-no-fog].png, a luminance report and frame times.
         [MenuItem("Pixel Art Lab/Background Lighting/Capture Play Mode")]
         public static void Capture(){EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);SessionState.SetBool("Lighting.Capture",true);EditorApplication.isPlaying=true;}
         [InitializeOnLoadMethod]static void Resume(){if(SessionState.GetBool("Lighting.Capture",false))EditorApplication.update+=Tick;}
         static readonly (string name,float hour,bool shore)[] Shots={("Noon",13,false),("Sunset",17.5f,false),("Night",0,false),("Night-Shore",0,true),("Sunset-Shore",17.5f,true)};
         static readonly List<string> report=new List<string>();
         static readonly List<float> frameTimes=new List<float>();
-        static int frame,shot,timing;static bool flat;static double timingStart;
+        static int frame,shot,timing,variant;static double timingStart;
         static void Tick()
         {
             if(!Application.isPlaying)return;
@@ -129,17 +129,19 @@ namespace PixelArtLab.Editor
             env.runClock=false;
             if(shot<Shots.Length)
             {
-                env.hour=Shots[shot].hour;if(volume)volume.weight=flat?0:1;
+                // Variants: 0 full, 1 no post-processing, 2 no height fog.
+                env.hour=Shots[shot].hour;if(volume)volume.weight=variant==1?0:1;env.heightFog=variant!=2;
                 if(frame==0){var at=Shots[shot].shore?new Vector3(-17,1,12):env.player.spawnPoint;if((env.player.transform.position-at).sqrMagnitude>1){env.player.Teleport(at);follow.lookOffset=Shots[shot].shore?new Vector3(-6,0,7):Vector3.zero;follow.SnapToPlayer();}}
                 // Let the camera settle and the volume stack update before reading.
                 if(++frame<30)return;frame=0;
                 Directory.CreateDirectory("Previews/Lighting");
-                var pixels=Save(buffer,$"Previews/Lighting/{Shots[shot].name}{(flat?"-no-post":"")}.png");
+                string suffix=variant==1?"-no-post":variant==2?"-no-fog":"";
+                var pixels=Save(buffer,$"Previews/Lighting/{Shots[shot].name}{suffix}.png");
                 var luma=pixels.Select(p=>(p.r*.2126f+p.g*.7152f+p.b*.0722f)/255).OrderBy(v=>v).ToArray();
                 float mean=luma.Average(),dark=luma[(int)(luma.Length*.1f)],bright=luma[(int)(luma.Length*.95f)];
-                report.Add($"{Shots[shot].name}{(flat?" (no post)":"")}: mean {mean:F3}, p10 {dark:F3}, p95 {bright:F3}, contrast p95/p10 {bright/Mathf.Max(.002f,dark):F1}");
-                if(!flat){flat=true;return;}
-                flat=false;shot++;return;
+                report.Add($"{Shots[shot].name}{suffix}: mean {mean:F3}, p10 {dark:F3}, p95 {bright:F3}, contrast p95/p10 {bright/Mathf.Max(.002f,dark):F1}");
+                if(++variant<3)return;
+                variant=0;shot++;env.heightFog=true;return;
             }
             // Frame time at the night camp with the placed practical lights off, then on (uncapped).
             Application.targetFrameRate=-1;QualitySettings.vSyncCount=0;env.hour=0;if(volume)volume.weight=1;

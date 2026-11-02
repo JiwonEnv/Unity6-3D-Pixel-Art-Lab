@@ -1,13 +1,18 @@
 BACKGROUND_LIGHTING_CAPTURE
-Noon: mean 0.311, p10 0.239, p95 0.414, contrast p95/p10 1.7
-Noon (no post): mean 0.337, p10 0.271, p95 0.429, contrast p95/p10 1.6
-Sunset: mean 0.134, p10 0.073, p95 0.237, contrast p95/p10 3.2
-Sunset (no post): mean 0.145, p10 0.090, p95 0.245, contrast p95/p10 2.7
-Night: mean 0.136, p10 0.071, p95 0.248, contrast p95/p10 3.5
-Night (no post): mean 0.148, p10 0.089, p95 0.257, contrast p95/p10 2.9
-Night-Shore: mean 0.078, p10 0.043, p95 0.184, contrast p95/p10 4.3
-Night-Shore (no post): mean 0.088, p10 0.052, p95 0.192, contrast p95/p10 3.7
-Sunset-Shore: mean 0.085, p10 0.049, p95 0.174, contrast p95/p10 3.6
-Sunset-Shore (no post): mean 0.095, p10 0.059, p95 0.185, contrast p95/p10 3.1
-Frame time, night camp, placed practicals off: median 2.02 ms, p90 2.90 ms (1782 samples)
-Frame time, night camp, placed practicals on: median 1.98 ms, p90 2.57 ms (1894 samples)
+Noon: mean 0.344, p10 0.270, p95 0.438, contrast p95/p10 1.6
+Noon-no-post: mean 0.373, p10 0.312, p95 0.453, contrast p95/p10 1.5
+Noon-no-fog: mean 0.311, p10 0.239, p95 0.413, contrast p95/p10 1.7
+Sunset: mean 0.159, p10 0.108, p95 0.249, contrast p95/p10 2.3
+Sunset-no-post: mean 0.173, p10 0.126, p95 0.256, contrast p95/p10 2.0
+Sunset-no-fog: mean 0.134, p10 0.073, p95 0.237, contrast p95/p10 3.2
+Night: mean 0.141, p10 0.080, p95 0.246, contrast p95/p10 3.1
+Night-no-post: mean 0.153, p10 0.098, p95 0.254, contrast p95/p10 2.6
+Night-no-fog: mean 0.136, p10 0.071, p95 0.248, contrast p95/p10 3.5
+Night-Shore: mean 0.100, p10 0.070, p95 0.187, contrast p95/p10 2.7
+Night-Shore-no-post: mean 0.111, p10 0.082, p95 0.199, contrast p95/p10 2.4
+Night-Shore-no-fog: mean 0.078, p10 0.043, p95 0.184, contrast p95/p10 4.3
+Sunset-Shore: mean 0.155, p10 0.129, p95 0.211, contrast p95/p10 1.6
+Sunset-Shore-no-post: mean 0.169, p10 0.149, p95 0.224, contrast p95/p10 1.5
+Sunset-Shore-no-fog: mean 0.085, p10 0.049, p95 0.175, contrast p95/p10 3.6
+Frame time, night camp, placed practicals off: median 1.89 ms, p90 2.46 ms (1984 samples)
+Frame time, night camp, placed practicals on: median 1.88 ms, p90 2.46 ms (1991 samples)

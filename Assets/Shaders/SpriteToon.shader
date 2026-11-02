@@ -87,6 +87,17 @@ Shader "PixelArtLab/Sprite Toon"
             // Written globally by DetailWaterReflection (one lake capture, one puddle capture).
             float4x4 _PuddleProjection;float _PuddleCaptureHeight;
             float4x4 _DetailProjection;float _DetailCaptureHeight;
+            // Height fog (Docs/Background-Lighting-Design.md L4), written by WorldEnvironment.
+            // An orthographic camera sees every surface from ~45m, so distance fog is a flat
+            // tint; height lets haze pool over the lake and low ground instead.
+            float4 _LabHeightFog;      // x full-density height, y falloff (m), z density, w drift
+            float4 _LabHeightFogColor; // rgb haze colour, a how strongly nearby lamps glow in it
+            half HeightFog(float3 p)
+            {
+                float d=_LabHeightFog.z*exp(-max(0,p.y-_LabHeightFog.x)/max(.01,_LabHeightFog.y));
+                float drift=sin(p.x*.17+_LabWaterTime*.07)*sin(p.z*.13-_LabWaterTime*.05)*.5+.5;
+                return saturate(d*lerp(1,.55+.9*drift,_LabHeightFog.w));
+            }
 
             struct Attributes{float4 positionOS:POSITION;float3 normalOS:NORMAL;float4 tangentOS:TANGENT;float2 uv:TEXCOORD0;};
             struct Varyings{float4 positionCS:SV_POSITION;float2 uv:TEXCOORD0;float3 positionWS:TEXCOORD1;float3 normalWS:TEXCOORD2;float4 tangentWS:TEXCOORD3;half fogFactor:TEXCOORD4;};
@@ -265,14 +276,21 @@ Shader "PixelArtLab/Sprite Toon"
 
                 ToonSurface s;s.albedo=albedo;s.rough=rough;s.gloss=gloss;s.normalWS=TangentToWorld(i,normalTS);
                 half3 color=SunLighting(s,sun.direction,view,sun.distanceAttenuation*sun.shadowAttenuation,sun.color)+emission;
+                half3 fogGlow=0;
                 #if defined(_ADDITIONAL_LIGHTS)
                 InputData inputData=(InputData)0;inputData.positionWS=worldPos;inputData.normalizedScreenSpaceUV=GetNormalizedScreenSpaceUV(i.positionCS);
                 uint lightCount=GetAdditionalLightsCount();
                 LIGHT_LOOP_BEGIN(lightCount)
                     Light light=GetAdditionalLight(lightIndex,worldPos,half4(1,1,1,1));
-                    color+=LocalLighting(s,light.direction,view,LegacyAttenuation(lightIndex,worldPos)*light.shadowAttenuation,light.color);
+                    half falloff=LegacyAttenuation(lightIndex,worldPos);
+                    color+=LocalLighting(s,light.direction,view,falloff*light.shadowAttenuation,light.color);
+                    // Haze scatters lamp light regardless of what blocks the surface.
+                    fogGlow+=light.color*falloff;
                 LIGHT_LOOP_END
                 #endif
+                // Characters take a lighter haze so they stay readable against the background (L8).
+                half haze=HeightFog(worldPos)*(_LabCharacter>.5?.35:1);
+                color=lerp(color,_LabHeightFogColor.rgb+fogGlow*_LabHeightFogColor.a,haze);
                 return half4(MixFog(color,i.fogFactor),1);
             }
             ENDHLSL

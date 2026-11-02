@@ -27,6 +27,12 @@ namespace PixelArtLab
         // Point shadows go to this many of the nearest practical lights (512px cube maps each).
         [Range(0,8)]public int shadowedPracticals=4;
         readonly System.Collections.Generic.List<Light> ordered=new System.Collections.Generic.List<Light>();
+        // Height fog (Docs/Background-Lighting-Design.md L4): haze pools over the lake and low
+        // ground, thickest at night, warm-violet at sunset, and glows around practical lights.
+        public bool heightFog=true;
+        public float fogBaseHeight=.3f,fogFalloff=1.2f;
+        [Range(0,1)]public float nightFogDensity=.28f,dayFogDensity=.12f,fogDrift=.6f,lampFogGlow=.08f;
+        public Color nightFogColor=new Color(.09f,.15f,.19f),sunsetFogColor=new Color(.40f,.27f,.33f),dayFogColor=new Color(.66f,.72f,.74f);
         public Color nightAmbientTint=new Color(.42f,.62f,.76f),dayAmbientTint=new Color(.95f,.97f,1);
         Color originalSunColor,originalBackground;
         Quaternion originalRotation;
@@ -117,6 +123,13 @@ namespace PixelArtLab
             Color background=Color.Lerp(new Color(.035f,.055f,.105f),new Color(.32f,.43f,.48f),Daylight);
             background=Color.Lerp(background,new Color(.35f,.41f,.47f),cloud*.55f);
             if(worldCamera)worldCamera.backgroundColor=background;
+            Color haze=Color.Lerp(nightFogColor,dayFogColor,Daylight);
+            haze=Color.Lerp(haze,sunsetFogColor,sunset*Daylight*(1-Daylight)*4); // peaks mid-transition
+            haze=Color.Lerp(haze,new Color(.5f,.55f,.6f),cloud*.5f);
+            float density=heightFog?Mathf.Lerp(nightFogDensity,dayFogDensity,Daylight)*(1+cloud*.6f):0;
+            Shader.SetGlobalVector("_LabHeightFog",new Vector4(fogBaseHeight,fogFalloff,density,fogDrift));
+            // SetGlobalVector skips the sRGB->linear step SetGlobalColor does; convert explicitly.
+            haze=haze.linear;Shader.SetGlobalVector("_LabHeightFogColor",new Vector4(haze.r,haze.g,haze.b,lampFogGlow));
             RenderSettings.fog=true;RenderSettings.fogMode=FogMode.Linear;RenderSettings.fogColor=background;
             RenderSettings.fogStartDistance=Mathf.Lerp(80,57,cloud);RenderSettings.fogEndDistance=Mathf.Lerp(150,99,cloud);
         }
@@ -124,7 +137,7 @@ namespace PixelArtLab
         {
             Shader.SetGlobalVector("_LabEnvironment",Vector4.zero);Shader.SetGlobalVector("_LabWind",Vector4.zero);
             Shader.SetGlobalFloat("_LabWeatherTime",0);Shader.SetGlobalFloat("_LabCloudCover",0);Shader.SetGlobalFloat("_LabWaterMotion",0);
-            Shader.SetGlobalFloat("_LabWaterTime",0);
+            Shader.SetGlobalFloat("_LabWaterTime",0);Shader.SetGlobalVector("_LabHeightFog",Vector4.zero);
             if(cached&&sun){sun.color=originalSunColor;sun.intensity=originalIntensity;sun.transform.rotation=originalRotation;}
             if(worldCamera)worldCamera.backgroundColor=originalBackground;RenderSettings.fog=false;
             if(torches!=null)foreach(var torch in torches)if(torch){var practical=torch.GetComponent<PracticalLight>();if(practical)practical.Apply(0);else torch.intensity=2.3f;}
