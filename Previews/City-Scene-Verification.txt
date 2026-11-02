@@ -1,7 +1,0 @@
-CITY_SCENE_SUCCESS
-Commercial mesh instances: 21
-Industrial mesh instances: 24
-Side movement and camera; dash / air step initially locked: PASS
-Outdoor wetness / snow and sheltered drainway: PASS
-Rim, reveal, scan, puddle ripples and snow footprints connected: PASS
-NO PLAYER BUILD

@@ -24,7 +24,3 @@ The original license files are retained beside the imported models. Credits are 
 - Original source files are preserved; converted materials are in `Assets/Art/OpenWorld`.
 
 No ProPixelizer, paid character controller, paid environment asset or extracted Never's End content is included.
-
-## 횡스크롤 도시 씬
-
-Kenney City Kit Commercial 및 City Kit Industrial — CC0. 공식 배포: https://kenney.nl/assets/city-kit-commercial 및 https://kenney.nl/assets/city-kit-industrial . Assets/ThirdParty/KenneyCityCommercial 및 KenneyCityIndustrial에 원본 License.txt, FBX, 팔레트를 보존했습니다.

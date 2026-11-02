@@ -10,7 +10,6 @@ namespace PixelArtLab
         public int sourceHeight=360,pixelsPerUnit=25;
         public float yaw=42,pitch=38;
         public bool pixelated=true,toon=true;
-        public bool sideView;
         public Vector3 lookOffset;
         Camera cameraComponent;
         RenderTexture buffer;
@@ -22,14 +21,13 @@ namespace PixelArtLab
         void LateUpdate()
         {
             if(!player)return;
-            if(!sideView&&Input.GetKey(KeyCode.Q))yaw-=Time.deltaTime*65;
-            if(!sideView&&Input.GetKey(KeyCode.E))yaw+=Time.deltaTime*65;
+            if(Input.GetKey(KeyCode.Q))yaw-=Time.deltaTime*65;
+            if(Input.GetKey(KeyCode.E))yaw+=Time.deltaTime*65;
             pixelsPerUnit=Mathf.Clamp(pixelsPerUnit+Mathf.RoundToInt(Input.mouseScrollDelta.y*2),16,40);
             if(Input.GetKeyDown(KeyCode.T))toon=!toon;
             if(Input.GetKeyDown(KeyCode.O))linework.linework=!linework.linework;
             if(Input.GetKeyDown(KeyCode.Tab))pixelated=!pixelated;
             Vector3 target=player.transform.position+Vector3.up*.95f+lookOffset;
-            if(sideView){target.z=0;target.y+=.8f;target.x+=player.visual?Mathf.Sign(player.visual.forward.x)*1.5f:0;}
             if(!initialized || Vector3.Distance(focus,target)>15){focus=target;initialized=true;velocity=Vector3.zero;}
             focus=Vector3.SmoothDamp(focus,target,ref velocity,.13f);
             ApplyCamera();

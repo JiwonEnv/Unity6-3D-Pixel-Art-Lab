@@ -14,12 +14,6 @@ namespace PixelArtLab
         public bool externalSprint;
         public LayerMask groundLayers=~(1<<8);
         public bool steppedFacing=true;
-        public bool sideScrolling,doubleJumpUnlocked,dashUnlocked;
-        public float sidePlaneZ;
-        public int AirJumpCount {get;private set;}
-        public int DashCount {get;private set;}
-        bool airJumpUsed,airDashUsed,requestedDash;
-        float dashRemaining,lastDash=-10,dashDirection=1;
         CharacterController controller;
         Vector3 horizontal;
         float vertical, lastGrounded=-10, lastJump=-10;
@@ -37,7 +31,6 @@ namespace PixelArtLab
                 && Vector3.Angle(hit.normal,Vector3.up)<=controller.slopeLimit;
         }
         public void QueueJump()=>requestedJump=true;
-        public void QueueDash()=>requestedDash=true;
         void Update()
         {
             if(Time.timeScale==0)return;
@@ -45,40 +38,28 @@ namespace PixelArtLab
             bool sprint=externalControl?externalSprint:Input.GetKey(KeyCode.LeftShift);
             if(!externalControl&&Input.GetKeyDown(KeyCode.Space))QueueJump();
             if(!externalControl&&Input.GetKeyDown(KeyCode.R))Respawn();
-            if(sideScrolling&&!externalControl&&(Input.GetKeyDown(KeyCode.X)||Input.GetKeyDown(KeyCode.LeftControl)))QueueDash();
             if(requestedJump){lastJump=Time.time;requestedJump=false;}
             Vector3 forward=cameraTransform?cameraTransform.forward:Vector3.forward;forward.y=0;forward.Normalize();
             Vector3 right=cameraTransform?cameraTransform.right:Vector3.right;right.y=0;right.Normalize();
             Vector3 direction=Vector3.ClampMagnitude(forward*move.y+right*move.x,1);
-            if(sideScrolling)direction=Vector3.right*Mathf.Clamp(move.x,-1,1);
-            if(requestedDash)
-            {
-                requestedDash=false;
-                if(sideScrolling&&dashUnlocked&&Time.time-lastDash>.55f&&(Grounded||!airDashUsed))
-                {dashDirection=Mathf.Abs(move.x)>.1f?Mathf.Sign(move.x):(visual&&visual.forward.x<0?-1:1);dashRemaining=.18f;lastDash=Time.time;airDashUsed=true;DashCount++;}
-            }
             // Keep collision sweeps and gravity stable even in a slow/background frame.
             float remaining=Time.deltaTime;
             while(remaining>.00001f)
             {
                 float step=Mathf.Min(remaining,1f/60);remaining-=step;
                 Grounded=vertical<=0&&(controller.isGrounded||ProbeGround());
-                if(Grounded){lastGrounded=Time.time;if(vertical<0)vertical=-2;airJumpUsed=false;airDashUsed=false;}
+                if(Grounded){lastGrounded=Time.time;if(vertical<0)vertical=-2;}
                 if(Time.time-lastJump<.14f&&Time.time-lastGrounded<.12f)
                 {
                     vertical=Mathf.Sqrt(jumpHeight*-2*gravity);lastJump=-10;lastGrounded=-10;JumpCount++;
                 }
-                else if(sideScrolling&&doubleJumpUnlocked&&!airJumpUsed&&Time.time-lastJump<.14f)
-                {vertical=Mathf.Sqrt(jumpHeight*-2*gravity);lastJump=-10;airJumpUsed=true;AirJumpCount++;JumpCount++;}
-                bool dashing=sideScrolling&&dashRemaining>0;
-                horizontal=dashing?Vector3.right*dashDirection*15:Vector3.MoveTowards(horizontal,direction*(sprint?sprintSpeed:walkSpeed),(Grounded?30:12)*step);
-                float dy=dashing?0:vertical*step+gravity*step*step*.5f;vertical=dashing?0:Mathf.Max(vertical+gravity*step,-38);dashRemaining=Mathf.Max(0,dashRemaining-step);
+                horizontal=Vector3.MoveTowards(horizontal,direction*(sprint?sprintSpeed:walkSpeed),(Grounded?30:12)*step);
+                float dy=vertical*step+gravity*step*step*.5f;vertical=Mathf.Max(vertical+gravity*step,-38);
                 var flags=controller.Move(horizontal*step+Vector3.up*dy);
                 if((flags&CollisionFlags.Above)!=0&&vertical>0)vertical=0;
                 Grounded=(flags&CollisionFlags.Below)!=0;
             }
             Grounded=vertical<=0&&(Grounded||ProbeGround());
-            if(sideScrolling&&Mathf.Abs(transform.position.z-sidePlaneZ)>.0001f)controller.Move(Vector3.forward*(sidePlaneZ-transform.position.z));
             if(visual&&direction.sqrMagnitude>.01f)
             {
                 if(steppedFacing){float angle=Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;visual.rotation=Quaternion.Euler(0,Mathf.Round(angle/22.5f)*22.5f,0);}
@@ -91,12 +72,10 @@ namespace PixelArtLab
         {
             controller.enabled=false;transform.position=spawnPoint;controller.enabled=true;
             horizontal=Vector3.zero;vertical=0;lastGrounded=-10;lastJump=-10;RespawnCount++;
-            dashRemaining=0;airJumpUsed=false;airDashUsed=false;
         }
         public void Teleport(Vector3 position)
         {
             controller.enabled=false;transform.position=position;controller.enabled=true;horizontal=Vector3.zero;vertical=0;
-            dashRemaining=0;lastJump=-10;lastGrounded=-10;airJumpUsed=false;airDashUsed=false;
         }
     }
 }
