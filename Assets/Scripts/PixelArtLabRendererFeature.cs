@@ -7,15 +7,19 @@ using UnityEngine.Rendering.Universal;
 
 namespace PixelArtLab
 {
-    // URP replacement for the Built-in camera hooks: PlayerVisibility's BeforeImageEffects
-    // command buffer and PixelLinework's OnRenderImage. Both stay opt-in per camera.
+    // Custom passes on top of URP, each opt-in per camera by component:
+    // PlayerVisibility (wall stencil and occluded scan), PixelVolumetrics (light shafts)
+    // and PixelLinework (object-ID ink, drawn last so lines stay crisp over the haze).
     public sealed class PixelArtLabRendererFeature : ScriptableRendererFeature
     {
         VisibilityPass visibility;
         LineworkPass linework;
+        VolumetricPass volumetrics;
         public override void Create()
         {
             visibility=new VisibilityPass{renderPassEvent=RenderPassEvent.AfterRenderingTransparents,requiresIntermediateTexture=true};
+            volumetrics=new VolumetricPass{renderPassEvent=RenderPassEvent.AfterRenderingTransparents+1,requiresIntermediateTexture=true};
+            volumetrics.ConfigureInput(ScriptableRenderPassInput.Depth);
             linework=new LineworkPass{renderPassEvent=RenderPassEvent.BeforeRenderingPostProcessing,requiresIntermediateTexture=true};
         }
         public override void AddRenderPasses(ScriptableRenderer renderer,ref RenderingData renderingData)
@@ -24,8 +28,49 @@ namespace PixelArtLab
             if(renderingData.cameraData.cameraType!=CameraType.Game)return;
             var player=camera.GetComponent<PlayerVisibility>();
             if(player&&player.isActiveAndEnabled&&player.draws.Count>0){visibility.source=player;renderer.EnqueuePass(visibility);}
+            var air=camera.GetComponent<PixelVolumetrics>();
+            if(air&&air.isActiveAndEnabled){volumetrics.source=air;renderer.EnqueuePass(volumetrics);}
             var ink=camera.GetComponent<PixelLinework>();
             if(ink&&ink.isActiveAndEnabled&&ink.linework){linework.source=ink;renderer.EnqueuePass(linework);}
+        }
+
+        sealed class VolumetricPass : ScriptableRenderPass
+        {
+            public PixelVolumetrics source;
+            static readonly int volumeId=Shader.PropertyToID("_LabVolumetricTexture");
+            sealed class MarchData {public Material material;}
+            sealed class CompositeData {public TextureHandle color,volume;public Material material;}
+            public override void RecordRenderGraph(RenderGraph renderGraph,ContextContainer frameData)
+            {
+                var resources=frameData.Get<UniversalResourceData>();
+                if(resources.isActiveTargetBackBuffer||!resources.cameraDepthTexture.IsValid())return;
+                var colorDesc=renderGraph.GetTextureDesc(resources.activeColorTexture);
+                var material=source.Prepare(colorDesc.width,colorDesc.height);if(!material)return;
+                // Pass 0: march the haze into an HDR buffer the size of the pixel buffer.
+                var volume=UniversalRenderer.CreateRenderGraphTexture(renderGraph,new RenderTextureDescriptor(colorDesc.width,colorDesc.height,GraphicsFormat.R16G16B16A16_SFloat,GraphicsFormat.None),"Pixel Volumetrics",false);
+                using(var builder=renderGraph.AddRasterRenderPass<MarchData>("Pixel volumetric march",out var data))
+                {
+                    data.material=material;
+                    builder.UseTexture(resources.cameraDepthTexture);
+                    builder.UseAllGlobalTextures(true); // main light shadow map, camera depth
+                    builder.SetRenderAttachment(volume,0);
+                    builder.SetRenderFunc((MarchData d,RasterGraphContext context)=>Blitter.BlitTexture(context.cmd,new Vector4(1,1,0,0),d.material,0));
+                }
+                // Pass 1: blur, band and add to the scene colour.
+                colorDesc.name="Pixel Volumetrics Composite";colorDesc.clearBuffer=false;
+                var lit=renderGraph.CreateTexture(colorDesc);
+                using(var builder=renderGraph.AddRasterRenderPass<CompositeData>("Pixel volumetric composite",out var data))
+                {
+                    data.color=resources.activeColorTexture;data.volume=volume;data.material=material;
+                    builder.UseTexture(data.color);builder.UseTexture(volume);builder.SetRenderAttachment(lit,0);
+                    builder.SetRenderFunc((CompositeData d,RasterGraphContext context)=>
+                    {
+                        d.material.SetTexture(volumeId,(RTHandle)d.volume);
+                        Blitter.BlitTexture(context.cmd,d.color,new Vector4(1,1,0,0),d.material,1);
+                    });
+                }
+                resources.cameraColor=lit;
+            }
         }
 
         sealed class VisibilityPass : ScriptableRenderPass

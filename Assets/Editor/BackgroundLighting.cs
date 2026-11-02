@@ -111,12 +111,27 @@ namespace PixelArtLab.Editor
             g.GetComponent<Renderer>().sharedMaterial=material;if(!solid)Object.DestroyImmediate(g.GetComponent<Collider>());return g;
         }
 
+        // Phase 4: pixel-resolution light shafts and lamp glow in the air (L5).
+        [MenuItem("Pixel Art Lab/Background Lighting/Apply Phase 4")]
+        public static void ApplyPhase4()
+        {
+            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
+            var env=Object.FindFirstObjectByType<WorldEnvironment>();
+            var air=env.worldCamera.GetComponent<PixelVolumetrics>();if(!air)air=env.worldCamera.gameObject.AddComponent<PixelVolumetrics>();
+            air.shader=Shader.Find("Hidden/PixelArtLab/Volumetrics");air.environment=env;
+            // Tuned values, written explicitly so re-running reproduces them.
+            air.steps=24;air.airDensity=.01f;air.mediumTop=8;air.maxMarch=30;air.sunStrength=.08f;air.lampStrength=.15f;air.lampGlowReach=.6f;air.moonScatter=.25f;air.bandStep=.035f;
+            EditorUtility.SetDirty(air);
+            EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+            Debug.Log("BACKGROUND_LIGHTING_PHASE4_APPLIED "+(air.shader?air.shader.name:"missing shader"));
+        }
+
         // Play-mode captures of the live pixel buffer (post-processing only runs there).
-        // Writes Previews/Lighting/<shot>[-no-post|-no-fog].png, a luminance report and frame times.
+        // Writes Previews/Lighting/<shot>[-no-post|-no-fog|-no-volumetrics].png, a luminance report and frame times.
         [MenuItem("Pixel Art Lab/Background Lighting/Capture Play Mode")]
         public static void Capture(){EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);SessionState.SetBool("Lighting.Capture",true);EditorApplication.isPlaying=true;}
         [InitializeOnLoadMethod]static void Resume(){if(SessionState.GetBool("Lighting.Capture",false))EditorApplication.update+=Tick;}
-        static readonly (string name,float hour,bool shore)[] Shots={("Noon",13,false),("Sunset",17.5f,false),("Night",0,false),("Night-Shore",0,true),("Sunset-Shore",17.5f,true)};
+        static readonly (string name,float hour,bool shore)[] Shots={("Morning",8,false),("Noon",13,false),("Sunset",17.5f,false),("Night",0,false),("Night-Shore",0,true),("Sunset-Shore",17.5f,true)};
         static readonly List<string> report=new List<string>();
         static readonly List<float> frameTimes=new List<float>();
         static int frame,shot,timing,variant;static double timingStart;
@@ -129,18 +144,19 @@ namespace PixelArtLab.Editor
             env.runClock=false;
             if(shot<Shots.Length)
             {
-                // Variants: 0 full, 1 no post-processing, 2 no height fog.
+                // Variants: 0 full, 1 no post-processing, 2 no height fog, 3 no volumetrics.
                 env.hour=Shots[shot].hour;if(volume)volume.weight=variant==1?0:1;env.heightFog=variant!=2;
+                var air=follow.GetComponent<PixelVolumetrics>();if(air)air.enabled=variant!=3;
                 if(frame==0){var at=Shots[shot].shore?new Vector3(-17,1,12):env.player.spawnPoint;if((env.player.transform.position-at).sqrMagnitude>1){env.player.Teleport(at);follow.lookOffset=Shots[shot].shore?new Vector3(-6,0,7):Vector3.zero;follow.SnapToPlayer();}}
                 // Let the camera settle and the volume stack update before reading.
                 if(++frame<30)return;frame=0;
                 Directory.CreateDirectory("Previews/Lighting");
-                string suffix=variant==1?"-no-post":variant==2?"-no-fog":"";
+                string suffix=variant==1?"-no-post":variant==2?"-no-fog":variant==3?"-no-volumetrics":"";
                 var pixels=Save(buffer,$"Previews/Lighting/{Shots[shot].name}{suffix}.png");
                 var luma=pixels.Select(p=>(p.r*.2126f+p.g*.7152f+p.b*.0722f)/255).OrderBy(v=>v).ToArray();
                 float mean=luma.Average(),dark=luma[(int)(luma.Length*.1f)],bright=luma[(int)(luma.Length*.95f)];
                 report.Add($"{Shots[shot].name}{suffix}: mean {mean:F3}, p10 {dark:F3}, p95 {bright:F3}, contrast p95/p10 {bright/Mathf.Max(.002f,dark):F1}");
-                if(++variant<3)return;
+                if(++variant<4)return;
                 variant=0;shot++;env.heightFog=true;return;
             }
             // Frame time at the night camp with the placed practical lights off, then on (uncapped).

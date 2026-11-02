@@ -2954,6 +2954,7 @@ GameObject:
   - component: {fileID: 65014380}
   - component: {fileID: 65014385}
   - component: {fileID: 65014386}
+  - component: {fileID: 65014387}
   m_Layer: 0
   m_Name: Pixel Follow Camera
   m_TagString: MainCamera
@@ -3451,6 +3452,29 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &65014387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 65014379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5377212a85663d4c872850423e1a2a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.PixelVolumetrics
+  shader: {fileID: 4800000, guid: f96df3473cdff94408820e2229b8c9ef, type: 3}
+  environment: {fileID: 182131033}
+  steps: 24
+  airDensity: 0.01
+  mediumTop: 8
+  maxMarch: 30
+  sunStrength: 0.08
+  lampStrength: 0.15
+  lampGlowReach: 0.6
+  moonScatter: 0.25
+  bandStep: 0.035
 --- !u!1001 &70093548
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8772,6 +8796,16 @@ MonoBehaviour:
   nightAmbient: 0.1
   moonIntensity: 0.3
   shadowedPracticals: 4
+  heightFog: 1
+  fogBaseHeight: 0.3
+  fogFalloff: 1.2
+  nightFogDensity: 0.28
+  dayFogDensity: 0.12
+  fogDrift: 0.6
+  lampFogGlow: 0.08
+  nightFogColor: {r: 0.09, g: 0.15, b: 0.19, a: 1}
+  sunsetFogColor: {r: 0.4, g: 0.27, b: 0.33, a: 1}
+  dayFogColor: {r: 0.66, g: 0.72, b: 0.74, a: 1}
   nightAmbientTint: {r: 0.42, g: 0.62, b: 0.76, a: 1}
   dayAmbientTint: {r: 0.95, g: 0.97, b: 1, a: 1}
 --- !u!4 &182131034
