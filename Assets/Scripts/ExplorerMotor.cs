@@ -14,6 +14,10 @@ namespace PixelArtLab
         public bool externalSprint;
         public LayerMask groundLayers=~(1<<8);
         public bool steppedFacing=true;
+        // Sprite-sheet cadence while steppedFacing is on: the rig is posed only this many
+        // times a second, like hand-placed stepped keys (Never's End GDC 2026, slides 92-93).
+        [Min(0)]public float animationFrameRate=12;
+        float animationClock;
         CharacterController controller;
         Vector3 horizontal;
         float vertical, lastGrounded=-10, lastJump=-10;
@@ -65,7 +69,16 @@ namespace PixelArtLab
                 if(steppedFacing){float angle=Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;visual.rotation=Quaternion.Euler(0,Mathf.Round(angle/22.5f)*22.5f,0);}
                 else visual.rotation=Quaternion.Slerp(visual.rotation,Quaternion.LookRotation(direction),Time.deltaTime*14);
             }
-            if(animator){animator.SetFloat("Speed",horizontal.magnitude);animator.SetBool("Grounded",Grounded);animator.SetFloat("VerticalSpeed",vertical);}
+            if(animator)
+            {
+                animator.SetFloat("Speed",horizontal.magnitude);animator.SetBool("Grounded",Grounded);animator.SetFloat("VerticalSpeed",vertical);
+                bool stepped=steppedFacing&&animationFrameRate>0;animator.enabled=!stepped;
+                if(stepped)
+                {
+                    animationClock+=Time.deltaTime;float frame=1f/animationFrameRate;
+                    if(animationClock>=frame){int frames=Mathf.FloorToInt(animationClock/frame);animator.Update(frames*frame);animationClock-=frames*frame;}
+                }
+            }
             if(transform.position.y<-8 || Mathf.Abs(transform.position.x)>85 || Mathf.Abs(transform.position.z)>85)Respawn();
         }
         public void Respawn()

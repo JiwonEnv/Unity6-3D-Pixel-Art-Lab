@@ -38,6 +38,9 @@ namespace PixelArtLab.Editor
             var so=new SerializedObject(renderer);
             Set(so,"m_RenderingMode",p=>p.intValue=0);      // Forward: per-object light limit, cheapest on tile GPUs
             Set(so,"m_DepthPrimingMode",p=>p.intValue=0);
+            // A renderer made with CreateInstance has no post-process resources, and URP then
+            // silently skips every post effect.
+            if(!renderer.postProcessData)renderer.postProcessData=AssetDatabase.LoadAssetAtPath<PostProcessData>("Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset");
             var features=so.FindProperty("m_RendererFeatures");var map=so.FindProperty("m_RendererFeatureMap");
             bool present=false;for(int i=0;i<features.arraySize;i++)present|=features.GetArrayElementAtIndex(i).objectReferenceValue is PixelArtLabRendererFeature;
             if(!present)

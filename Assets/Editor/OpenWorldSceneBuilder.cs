@@ -266,6 +266,17 @@ namespace PixelArtLab.Editor
             var p=Surface(point.x,point.y);Asset("KenneyNature","rock_smallA",p,1.7f,0);
             var g=Asset("KenneyPlatformer","coin-gold",p+Vector3.up*1,1.1f,0,false,true,true);g.name="Ancient waystone";return g.transform;
         }
+        // KayKit ships every weapon variant on the hand slots, all enabled. Stacked, four shields
+        // and three swords read as a cluster of single-texel noise at sprite scale.
+        public static readonly string[] KnightWeapons={"1H_Sword","Round_Shield"};
+        public static void KnightLoadout(GameObject visual)
+        {
+            foreach(var renderer in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                string name=renderer.name;if(!name.Contains("Sword")&&!name.Contains("Shield"))continue;
+                bool keep=KnightWeapons.Contains(name);if(renderer.gameObject.activeSelf!=keep){renderer.gameObject.SetActive(keep);EditorUtility.SetDirty(renderer.gameObject);}
+            }
+        }
         // Authored normals for the knight. Its many small facets each took their own toon band,
         // which at sprite scale reads as single-texel speckle. Each part's normals lean toward
         // its bounding-ellipsoid normal (one broad light shape per part) with a little sky bias,
@@ -306,7 +317,7 @@ namespace PixelArtLab.Editor
             var idle=AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(source)).OfType<AnimationClip>().First(c=>c.name=="Idle");idle.SampleAnimation(visual,0);
             var b=BoundsOf(visual);visual.transform.localScale*=1.8f/b.size.y;b=BoundsOf(visual);visual.transform.position+=Vector3.up*(g.transform.position.y-b.min.y);
             foreach(var renderer in visual.GetComponentsInChildren<Renderer>())renderer.sharedMaterials=renderer.sharedMaterials.Select(Palette).ToArray();
-            CharacterNormals(visual);
+            KnightLoadout(visual);CharacterNormals(visual);
             var animator=visual.GetComponent<Animator>();if(!animator)animator=visual.AddComponent<Animator>();animator.runtimeAnimatorController=Controller();animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
             var player=g.AddComponent<ExplorerMotor>();player.visual=visual.transform;player.animator=animator;player.spawnPoint=g.transform.position;
             var data=g.AddComponent<PixelArtObject>();data.objectId=id++;data.interior=.05f;data.Apply();return player;

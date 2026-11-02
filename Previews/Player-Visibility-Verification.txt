@@ -1,9 +1,9 @@
 PLAYER_VISIBILITY_SUCCESS
-Character rim / bounce pixels: 3779
-Tree foreground reveal: player pixels 118 -> 3767 PASS
+Character rim / bounce pixels: 3323
+Tree foreground reveal: player pixels 0 -> 3355 PASS
 Reveal leaves reflection geometry unchanged: PASS
 Low sign is excluded and renders unchanged: PASS
-Building-only hidden scan pixels: 2707
+Building-only hidden scan pixels: 2216
 Visible character pixels unaffected by wall scan: PASS
 Wall stencil excludes non-building foreground props: PASS
 Scan disappears after obstruction leaves: PASS

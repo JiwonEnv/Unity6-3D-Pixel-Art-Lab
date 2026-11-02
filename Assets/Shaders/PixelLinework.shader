@@ -57,8 +57,12 @@ Shader "Hidden/PixelArtLab/Linework"
                     ridge=max(ridge,step(_NormalThreshold,1-dot(normal,n))*step(abs(d-depth)*_LabFarPlane,.24));
                 }
                 float interior=lerp(1,objectData.b,_UseObjectIds);
-                float ink=saturate(max(max(outline,ridge*.48)*interior,boundary*_UseObjectIds))*_LineStrength;
+                float ink=saturate(max(outline,ridge*.48)*interior)*_LineStrength;
                 color.rgb=lerp(color.rgb,color.rgb*float3(.37,.32,.51),ink);
+                // Object silhouettes get a deep, cool outline so characters and props read as
+                // clean sprite shapes even at dusk; the soft tint above stays for inner ink.
+                float silhouette=boundary*_UseObjectIds*_LineStrength;
+                color.rgb=lerp(color.rgb,color.rgb*float3(.16,.14,.24),silhouette);
                 return color;
             }
             ENDHLSL
