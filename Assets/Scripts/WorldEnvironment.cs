@@ -24,6 +24,9 @@ namespace PixelArtLab
         [Range(0,1)]public float nightAmbient=.1f;
         // Moonlight stays below the torches so practical lights lead at night.
         [Range(0,1)]public float moonIntensity=.3f;
+        // Point shadows go to this many of the nearest practical lights (512px cube maps each).
+        [Range(0,8)]public int shadowedPracticals=4;
+        readonly System.Collections.Generic.List<Light> ordered=new System.Collections.Generic.List<Light>();
         public Color nightAmbientTint=new Color(.42f,.62f,.76f),dayAmbientTint=new Color(.95f,.97f,1);
         Color originalSunColor,originalBackground;
         Quaternion originalRotation;
@@ -96,13 +99,20 @@ namespace PixelArtLab
             Shader.SetGlobalFloat("_LabWaterTime",animationTime);
             Shader.SetGlobalFloat("_LabWaterMotion",waterEnabled?1:0);
             Shader.SetGlobalFloat("_LabCloudCover",Mathf.Clamp01(.12f+cloud));
-            int localShadowLights=0;
-            if(torches!=null)foreach(var torch in torches)if(torch)
+            if(torches!=null)
             {
-                torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
-                bool nearby=player&&Vector3.Distance(player.transform.position,torch.transform.position)<torch.range+2;
-                bool cast=nearby&&localShadowLights<2;if(cast)localShadowLights++;
-                torch.shadows=cast?LightShadows.Hard:LightShadows.None;torch.shadowStrength=.85f;torch.shadowBias=.025f;torch.shadowNormalBias=.1f;torch.shadowCustomResolution=512;
+                // The nearest lit practicals around the player cast shadows; the rest only light.
+                ordered.Clear();foreach(var torch in torches)if(torch)ordered.Add(torch);
+                if(player){var at=player.transform.position;ordered.Sort((a,b)=>(a.transform.position-at).sqrMagnitude.CompareTo((b.transform.position-at).sqrMagnitude));}
+                int localShadowLights=0;
+                foreach(var torch in ordered)
+                {
+                    var practical=torch.GetComponent<PracticalLight>();
+                    if(practical)practical.Apply(Daylight);else torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
+                    bool nearby=player&&torch.enabled&&Vector3.Distance(player.transform.position,torch.transform.position)<torch.range+2;
+                    bool cast=nearby&&localShadowLights<shadowedPracticals;if(cast)localShadowLights++;
+                    torch.shadows=cast?LightShadows.Hard:LightShadows.None;torch.shadowStrength=.85f;torch.shadowBias=.025f;torch.shadowNormalBias=.1f;torch.shadowCustomResolution=512;
+                }
             }
             Color background=Color.Lerp(new Color(.035f,.055f,.105f),new Color(.32f,.43f,.48f),Daylight);
             background=Color.Lerp(background,new Color(.35f,.41f,.47f),cloud*.55f);
@@ -117,7 +127,7 @@ namespace PixelArtLab
             Shader.SetGlobalFloat("_LabWaterTime",0);
             if(cached&&sun){sun.color=originalSunColor;sun.intensity=originalIntensity;sun.transform.rotation=originalRotation;}
             if(worldCamera)worldCamera.backgroundColor=originalBackground;RenderSettings.fog=false;
-            if(torches!=null)foreach(var torch in torches)if(torch)torch.intensity=2.3f;
+            if(torches!=null)foreach(var torch in torches)if(torch){var practical=torch.GetComponent<PracticalLight>();if(practical)practical.Apply(0);else torch.intensity=2.3f;}
         }
     }
 }

@@ -1,7 +1,13 @@
 BACKGROUND_LIGHTING_CAPTURE
-Noon: mean 0.313, p10 0.242, p95 0.414, contrast p95/p10 1.7
-Noon (no post): mean 0.339, p10 0.277, p95 0.429, contrast p95/p10 1.6
-Sunset: mean 0.113, p10 0.070, p95 0.210, contrast p95/p10 3.0
-Sunset (no post): mean 0.124, p10 0.082, p95 0.213, contrast p95/p10 2.6
-Night: mean 0.109, p10 0.069, p95 0.211, contrast p95/p10 3.1
-Night (no post): mean 0.120, p10 0.083, p95 0.214, contrast p95/p10 2.6
+Noon: mean 0.311, p10 0.239, p95 0.414, contrast p95/p10 1.7
+Noon (no post): mean 0.337, p10 0.271, p95 0.429, contrast p95/p10 1.6
+Sunset: mean 0.134, p10 0.073, p95 0.237, contrast p95/p10 3.2
+Sunset (no post): mean 0.145, p10 0.090, p95 0.245, contrast p95/p10 2.7
+Night: mean 0.136, p10 0.071, p95 0.248, contrast p95/p10 3.5
+Night (no post): mean 0.148, p10 0.089, p95 0.257, contrast p95/p10 2.9
+Night-Shore: mean 0.078, p10 0.043, p95 0.184, contrast p95/p10 4.3
+Night-Shore (no post): mean 0.088, p10 0.052, p95 0.192, contrast p95/p10 3.7
+Sunset-Shore: mean 0.085, p10 0.049, p95 0.174, contrast p95/p10 3.6
+Sunset-Shore (no post): mean 0.095, p10 0.059, p95 0.185, contrast p95/p10 3.1
+Frame time, night camp, placed practicals off: median 2.02 ms, p90 2.90 ms (1782 samples)
+Frame time, night camp, placed practicals on: median 1.98 ms, p90 2.57 ms (1894 samples)

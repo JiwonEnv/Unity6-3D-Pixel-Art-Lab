@@ -19,4 +19,4 @@ PASS Follow camera centers the player
 PASS Imported character Animator runs
 PASS Idle/walk/run/jump/fall clips played
 Observed clips: Idle, Walking_A, Running_A, Jump_Start, Jump_Idle
-Walk distance 4.01m; sprint 6.40m; jump rise 1.64m
+Walk distance 4.01m; sprint 6.52m; jump rise 1.64m
