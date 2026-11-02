@@ -36,8 +36,9 @@ namespace PixelArtLab
             }
             material.SetVectorArray("_LabVolumeLights",lights);material.SetVectorArray("_LabVolumeLightColors",colors);material.SetInt("_LabVolumeLightCount",count);
             material.SetVector("_LabVolumetric",new Vector4(airDensity,mediumTop,maxMarch,steps));
+            // Lamp halos fade to a quarter in full daylight; torches stay lit by day.
             float daylight=environment?environment.Daylight:1;
-            material.SetVector("_LabVolumetricStrength",new Vector4(sunStrength*Mathf.Lerp(moonScatter,1,Mathf.Clamp01(daylight*10)),lampStrength,bandStep,0));
+            material.SetVector("_LabVolumetricStrength",new Vector4(sunStrength*Mathf.Lerp(moonScatter,1,Mathf.Clamp01(daylight*10)),lampStrength*Mathf.Lerp(1,.25f,daylight),bandStep,0));
             material.SetVector("_LabVolumetricTexel",new Vector4(1f/width,1f/height,width,height));
             return material;
         }

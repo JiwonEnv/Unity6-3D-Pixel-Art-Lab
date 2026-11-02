@@ -32,7 +32,15 @@ namespace PixelArtLab
         public bool heightFog=true;
         public float fogBaseHeight=.3f,fogFalloff=1.2f;
         [Range(0,1)]public float nightFogDensity=.28f,dayFogDensity=.12f,fogDrift=.6f,lampFogGlow=.08f;
-        public Color nightFogColor=new Color(.09f,.15f,.19f),sunsetFogColor=new Color(.40f,.27f,.33f),dayFogColor=new Color(.66f,.72f,.74f);
+        // Time-of-day colour grading (Docs/Background-Lighting-Design.md L7): global volumes
+        // whose weights follow the sun. Golden hour peaks mid-transition, at dawn and dusk.
+        public bool colorGrading=true;
+        public UnityEngine.Rendering.Volume dayGrade,duskVermilionGrade,duskPinkGrade,duskVioletGrade,nightGrade;
+        public Color nightFogColor=new Color(.09f,.15f,.19f),dayFogColor=new Color(.66f,.72f,.74f);
+        // Dusk runs vermilion -> pink -> violet as the sun sinks (dawn runs it back). One
+        // progress value drives the sun colour, the haze and the grading volumes together.
+        public Color duskVermilionSun=new Color(1,.42f,.2f),duskPinkSun=new Color(1,.5f,.58f);
+        public Color duskVermilionFog=new Color(.48f,.26f,.2f),duskPinkFog=new Color(.46f,.28f,.38f),duskVioletFog=new Color(.3f,.24f,.42f);
         public Color nightAmbientTint=new Color(.42f,.62f,.76f),dayAmbientTint=new Color(.95f,.97f,1);
         Color originalSunColor,originalBackground;
         Quaternion originalRotation;
@@ -87,11 +95,15 @@ namespace PixelArtLab
             Daylight=Mathf.SmoothStep(0,1,Mathf.Clamp01((elevation+.08f)/.65f));
             float cloud=Mathf.Clamp01(rain*.8f+snow*.65f);
             float sunset=Mathf.Clamp01(1-elevation/.55f);
+            // Dusk window: from the sun at ~20 degrees until well into twilight.
+            float dusk=Mathf.Clamp01((.35f-elevation)/.12f)*Mathf.Clamp01((elevation+.25f)/.1f);
+            float duskProgress=Mathf.InverseLerp(.3f,-.18f,elevation); // 0 vermilion, .5 pink, 1 violet
             if(sun)
             {
                 bool day=elevation>0;
                 sun.transform.rotation=Quaternion.Euler((hour-6)*15+(day?0:180),-35,0);
-                sun.color=day?Color.Lerp(new Color(1,.95f,.84f),new Color(1,.47f,.24f),sunset):new Color(.55f,.68f,1);
+                Color duskSun=Color.Lerp(duskVermilionSun,duskPinkSun,Mathf.Clamp01(duskProgress*2));
+                sun.color=day?Color.Lerp(new Color(1,.95f,.84f),duskSun,sunset):new Color(.55f,.68f,1);
                 sun.color=Color.Lerp(sun.color,new Color(.82f,.88f,1),cloud*.8f);
                 sun.intensity=Mathf.Lerp(moonIntensity,1.05f,Daylight)*(1-cloud*.38f);
             }
@@ -123,8 +135,16 @@ namespace PixelArtLab
             Color background=Color.Lerp(new Color(.035f,.055f,.105f),new Color(.32f,.43f,.48f),Daylight);
             background=Color.Lerp(background,new Color(.35f,.41f,.47f),cloud*.55f);
             if(worldCamera)worldCamera.backgroundColor=background;
+            float grade=colorGrading?1:0;
+            float vermilion=dusk*(1-Mathf.Clamp01(duskProgress*2)),violet=dusk*Mathf.Clamp01(duskProgress*2-1),pink=dusk-vermilion-violet;
+            if(dayGrade)dayGrade.weight=grade*Daylight*(1-dusk);
+            if(duskVermilionGrade)duskVermilionGrade.weight=grade*vermilion;
+            if(duskPinkGrade)duskPinkGrade.weight=grade*pink;
+            if(duskVioletGrade)duskVioletGrade.weight=grade*violet;
+            if(nightGrade)nightGrade.weight=grade*(1-Daylight)*(1-dusk);
             Color haze=Color.Lerp(nightFogColor,dayFogColor,Daylight);
-            haze=Color.Lerp(haze,sunsetFogColor,sunset*Daylight*(1-Daylight)*4); // peaks mid-transition
+            Color duskHaze=duskProgress<.5f?Color.Lerp(duskVermilionFog,duskPinkFog,duskProgress*2):Color.Lerp(duskPinkFog,duskVioletFog,duskProgress*2-1);
+            haze=Color.Lerp(haze,duskHaze,dusk);
             haze=Color.Lerp(haze,new Color(.5f,.55f,.6f),cloud*.5f);
             float density=heightFog?Mathf.Lerp(nightFogDensity,dayFogDensity,Daylight)*(1+cloud*.6f):0;
             Shader.SetGlobalVector("_LabHeightFog",new Vector4(fogBaseHeight,fogFalloff,density,fogDrift));

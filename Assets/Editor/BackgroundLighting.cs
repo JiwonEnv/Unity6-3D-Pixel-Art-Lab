@@ -36,7 +36,7 @@ namespace PixelArtLab.Editor
             EditorUtility.SetDirty(profile);AssetDatabase.SaveAssets();
 
             EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
-            var volume=Object.FindFirstObjectByType<Volume>();
+            var volume=AtmosphereVolume();
             if(!volume)volume=new GameObject("Atmosphere (bloom, vignette)").AddComponent<Volume>();
             volume.isGlobal=true;volume.sharedProfile=profile;
             var camera=Object.FindFirstObjectByType<WorldEnvironment>().worldCamera;
@@ -126,12 +126,71 @@ namespace PixelArtLab.Editor
             Debug.Log("BACKGROUND_LIGHTING_PHASE4_APPLIED "+(air.shader?air.shader.name:"missing shader"));
         }
 
+        // The bloom/vignette volume, told apart from the grading volumes by its profile.
+        static Volume AtmosphereVolume()=>Object.FindObjectsByType<Volume>(FindObjectsSortMode.None).FirstOrDefault(v=>v.sharedProfile&&AssetDatabase.GetAssetPath(v.sharedProfile)==ProfilePath);
+
+        // Phase 5: time-of-day colour grading volumes blended by WorldEnvironment (L7).
+        [MenuItem("Pixel Art Lab/Background Lighting/Apply Phase 5")]
+        public static void ApplyPhase5()
+        {
+            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
+            var env=Object.FindFirstObjectByType<WorldEnvironment>();
+            env.dayGrade=GradeVolume("Grade - Day",profile=>
+            {
+                var white=profile.Add<WhiteBalance>(true);white.temperature.Override(4);
+                var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(6);adjust.contrast.Override(4);
+            });
+            // Dusk runs vermilion -> pink -> violet as the sun sinks (WorldEnvironment blends them).
+            env.duskVermilionGrade=GradeVolume("Grade - Dusk Vermilion",profile=>
+            {
+                var white=profile.Add<WhiteBalance>(true);white.temperature.Override(25);white.tint.Override(6);
+                var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.55f,.30f,.35f));split.highlights.Override(new Color(1,.5f,.25f));split.balance.Override(-10);
+                var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(14);
+            });
+            env.duskPinkGrade=GradeVolume("Grade - Dusk Pink",profile=>
+            {
+                var white=profile.Add<WhiteBalance>(true);white.temperature.Override(12);white.tint.Override(22);
+                var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.50f,.32f,.55f));split.highlights.Override(new Color(1,.6f,.72f));split.balance.Override(-5);
+                var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(10);
+            });
+            env.duskVioletGrade=GradeVolume("Grade - Dusk Violet",profile=>
+            {
+                var white=profile.Add<WhiteBalance>(true);white.temperature.Override(-6);white.tint.Override(18);
+                var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.36f,.28f,.60f));split.highlights.Override(new Color(.85f,.6f,.95f));split.balance.Override(5);
+                var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(4);
+            });
+            // Night: cool teal shadows; highlights stay warm so lamps keep their colour.
+            env.nightGrade=GradeVolume("Grade - Night",profile=>
+            {
+                var white=profile.Add<WhiteBalance>(true);white.temperature.Override(-18);white.tint.Override(-4);
+                var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.22f,.40f,.48f));split.highlights.Override(new Color(1,.72f,.46f));split.balance.Override(20);
+                var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(-4);adjust.contrast.Override(6);
+            });
+            // The single golden-hour grade was replaced by the three dusk grades.
+            var oldGolden=GameObject.Find("Grade - Golden Hour");if(oldGolden)Object.DestroyImmediate(oldGolden);
+            AssetDatabase.DeleteAsset("Assets/Settings/PixelArtLab-Woodland-Grade-GoldenHour.asset");
+            EditorUtility.SetDirty(env);env.Apply();
+            EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());AssetDatabase.SaveAssets();
+            Debug.Log("BACKGROUND_LIGHTING_PHASE5_APPLIED");
+        }
+        static Volume GradeVolume(string name,System.Action<VolumeProfile> build)
+        {
+            // Rebuilt each run; effect settings live as sub-assets of the profile file.
+            string path="Assets/Settings/PixelArtLab-Woodland-"+name.Replace("Grade - ","Grade-").Replace(" ","")+".asset";
+            AssetDatabase.DeleteAsset(path);
+            var profile=ScriptableObject.CreateInstance<VolumeProfile>();AssetDatabase.CreateAsset(profile,path);build(profile);
+            foreach(var component in profile.components){component.hideFlags=HideFlags.HideInInspector|HideFlags.HideInHierarchy;AssetDatabase.AddObjectToAsset(component,profile);}
+            EditorUtility.SetDirty(profile);
+            var existing=GameObject.Find(name);if(existing)Object.DestroyImmediate(existing);
+            var volume=new GameObject(name).AddComponent<Volume>();volume.isGlobal=true;volume.priority=1;volume.sharedProfile=profile;return volume;
+        }
+
         // Play-mode captures of the live pixel buffer (post-processing only runs there).
-        // Writes Previews/Lighting/<shot>[-no-post|-no-fog|-no-volumetrics].png, a luminance report and frame times.
+        // Writes Previews/Lighting/<shot>[-no-post|-no-fog|-no-volumetrics|-no-grading].png, a luminance report and frame times.
         [MenuItem("Pixel Art Lab/Background Lighting/Capture Play Mode")]
         public static void Capture(){EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);SessionState.SetBool("Lighting.Capture",true);EditorApplication.isPlaying=true;}
         [InitializeOnLoadMethod]static void Resume(){if(SessionState.GetBool("Lighting.Capture",false))EditorApplication.update+=Tick;}
-        static readonly (string name,float hour,bool shore)[] Shots={("Morning",8,false),("Noon",13,false),("Sunset",17.5f,false),("Night",0,false),("Night-Shore",0,true),("Sunset-Shore",17.5f,true)};
+        static readonly (string name,float hour,bool shore)[] Shots={("Morning",8,false),("Noon",13,false),("Dusk-Vermilion",17.1f,false),("Dusk-Pink",17.8f,false),("Dusk-Violet",18.5f,false),("Night",0,false),("Night-Shore",0,true),("Dusk-Pink-Shore",17.8f,true)};
         static readonly List<string> report=new List<string>();
         static readonly List<float> frameTimes=new List<float>();
         static int frame,shot,timing,variant;static double timingStart;
@@ -140,24 +199,24 @@ namespace PixelArtLab.Editor
             if(!Application.isPlaying)return;
             var follow=Object.FindFirstObjectByType<ExplorationCamera>();if(!follow)return;
             var buffer=follow.GetComponent<Camera>().targetTexture;if(!buffer)return;
-            var env=Object.FindFirstObjectByType<WorldEnvironment>();var volume=Object.FindFirstObjectByType<Volume>();
+            var env=Object.FindFirstObjectByType<WorldEnvironment>();var volume=AtmosphereVolume();
             env.runClock=false;
             if(shot<Shots.Length)
             {
-                // Variants: 0 full, 1 no post-processing, 2 no height fog, 3 no volumetrics.
-                env.hour=Shots[shot].hour;if(volume)volume.weight=variant==1?0:1;env.heightFog=variant!=2;
+                // Variants: 0 full, 1 no post-processing, 2 no height fog, 3 no volumetrics, 4 no grading.
+                env.hour=Shots[shot].hour;if(volume)volume.weight=variant==1?0:1;env.heightFog=variant!=2;env.colorGrading=variant!=4&&variant!=1;
                 var air=follow.GetComponent<PixelVolumetrics>();if(air)air.enabled=variant!=3;
                 if(frame==0){var at=Shots[shot].shore?new Vector3(-17,1,12):env.player.spawnPoint;if((env.player.transform.position-at).sqrMagnitude>1){env.player.Teleport(at);follow.lookOffset=Shots[shot].shore?new Vector3(-6,0,7):Vector3.zero;follow.SnapToPlayer();}}
                 // Let the camera settle and the volume stack update before reading.
                 if(++frame<30)return;frame=0;
                 Directory.CreateDirectory("Previews/Lighting");
-                string suffix=variant==1?"-no-post":variant==2?"-no-fog":variant==3?"-no-volumetrics":"";
+                string suffix=variant==1?"-no-post":variant==2?"-no-fog":variant==3?"-no-volumetrics":variant==4?"-no-grading":"";
                 var pixels=Save(buffer,$"Previews/Lighting/{Shots[shot].name}{suffix}.png");
                 var luma=pixels.Select(p=>(p.r*.2126f+p.g*.7152f+p.b*.0722f)/255).OrderBy(v=>v).ToArray();
                 float mean=luma.Average(),dark=luma[(int)(luma.Length*.1f)],bright=luma[(int)(luma.Length*.95f)];
                 report.Add($"{Shots[shot].name}{suffix}: mean {mean:F3}, p10 {dark:F3}, p95 {bright:F3}, contrast p95/p10 {bright/Mathf.Max(.002f,dark):F1}");
-                if(++variant<4)return;
-                variant=0;shot++;env.heightFog=true;return;
+                if(++variant<5)return;
+                variant=0;shot++;env.heightFog=true;env.colorGrading=true;return;
             }
             // Frame time at the night camp with the placed practical lights off, then on (uncapped).
             Application.targetFrameRate=-1;QualitySettings.vSyncCount=0;env.hour=0;if(volume)volume.weight=1;
