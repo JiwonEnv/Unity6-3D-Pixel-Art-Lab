@@ -26,7 +26,7 @@ namespace PixelArtLab
         public string ClockLabel=>$"{Mathf.FloorToInt(hour):00}:{Mathf.FloorToInt((hour%1)*60):00}";
         void OnEnable()
         {
-            // Shadow distance (120m: the follow camera sits 45m away), cascades and the
+            // Shadow distance (one 80m cascade: the follow camera sits 45m away) and the
             // per-pixel light limit live on the URP asset in Assets/Settings.
             if(!sun)sun=RenderSettings.sun;
             if(!worldCamera)worldCamera=Camera.main;

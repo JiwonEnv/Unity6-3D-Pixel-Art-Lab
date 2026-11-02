@@ -1,9 +1,9 @@
 REFLECTION_SHADOW_SUCCESS
 Reflection marker coordinates match within 1%: PASS
 Character reflection texture pixels: 1840
-Character reflection on actual puddle pixels: 2282
-Character shadow pixels: 909
-Tree shadow pixels: 1500
-Night torch shadow pixels: 3578
+Character reflection on actual puddle pixels: 2283
+Character shadow pixels: 935
+Tree shadow pixels: 1541
+Night torch shadow pixels: 3580
 Shadow distance: 120m
 NO PLAYER BUILD

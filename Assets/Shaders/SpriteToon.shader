@@ -232,7 +232,8 @@ Shader "PixelArtLab/Sprite Toon"
                 Light sun=GetMainLight(TransformWorldToShadowCoord(worldPos));
                 if(_LabCharacter>.5)
                 {
-                    float rim=floor(pow(1-saturate(dot(worldNormal,view)),3.5)*4+.35)/4;
+                    // One flat rim band: four quantized levels lit scattered single texels on small parts.
+                    float rim=step(.62,1-saturate(dot(worldNormal,view)))*.6;
                     float facing=lerp(.4,1,saturate(dot(worldNormal,sun.direction)*.5+.5));
                     half3 rimColor=lerp(half3(.42,.68,1),half3(1,.86,.62),_LabEnvironment.y*.6);
                     emission+=rimColor*rim*_CharacterRim*facing;

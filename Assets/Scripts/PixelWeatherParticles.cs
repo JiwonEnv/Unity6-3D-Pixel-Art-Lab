@@ -33,7 +33,7 @@ namespace PixelArtLab
             int tick=Mathf.FloorToInt(environment.animationTime*12);
             if(!force&&tick==lastTick&&(anchor-lastAnchor).sqrMagnitude<.01f)return;lastTick=tick;lastAnchor=anchor;
             System.Array.Clear(vertices,0,vertices.Length);System.Array.Clear(colors,0,colors.Length);
-            float unit=camera.orthographicSize*2/360;PixelUnit=unit;float time=tick/12f;
+            float unit=camera.orthographicSize*2/(camera.targetTexture?camera.targetTexture.height:360);PixelUnit=unit;float time=tick/12f;
             int rain=Mathf.RoundToInt(RainCount*environment.rain),snow=Mathf.RoundToInt(SnowCount*environment.snow);ActiveDrops=rain+snow;
             float ax=Mathf.Floor(anchor.x/4)*4,az=Mathf.Floor(anchor.z/4)*4;
             var rotation=camera.transform.rotation;var inverse=Quaternion.Inverse(rotation);Vector3 right=camera.transform.right,up=camera.transform.up;

@@ -57,10 +57,12 @@ namespace PixelArtLab.Editor
             Set(so,"m_MSAA",p=>p.intValue=1);Set(so,"m_SupportsHDR",p=>p.boolValue=false);Set(so,"m_RenderScale",p=>p.floatValue=1);
             Set(so,"m_RequireDepthTexture",p=>p.boolValue=false);Set(so,"m_RequireOpaqueTexture",p=>p.boolValue=false);
             Set(so,"m_UseSRPBatcher",p=>p.boolValue=true);
-            // The follow camera sits 45m away; a 42m shadow distance cannot reach the ground.
+            // The follow camera sits 45m back, so visible ground spans roughly 30-60m of depth.
+            // One 80m cascade covers it whole: a cascade split inside the view slid across the
+            // ground with the camera and re-shaped shadow edges as it passed.
             Set(so,"m_MainLightRenderingMode",p=>p.intValue=1);Set(so,"m_MainLightShadowsSupported",p=>p.boolValue=true);
             Set(so,"m_MainLightShadowmapResolution",p=>p.intValue=2048);
-            Set(so,"m_ShadowDistance",p=>p.floatValue=120);Set(so,"m_ShadowCascadeCount",p=>p.intValue=4);
+            Set(so,"m_ShadowDistance",p=>p.floatValue=80);Set(so,"m_ShadowCascadeCount",p=>p.intValue=1);
             Set(so,"m_SoftShadowsSupported",p=>p.boolValue=false);
             // Up to four per-pixel torches; the two nearest cast 512px point shadows.
             Set(so,"m_AdditionalLightsRenderingMode",p=>p.intValue=1);Set(so,"m_AdditionalLightsPerObjectLimit",p=>p.intValue=4);

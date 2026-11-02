@@ -16,7 +16,11 @@ namespace PixelArtLab
         Camera displayClearCamera;
         Vector3 focus,velocity;
         bool initialized;
+        // One guard texel per side so the subpixel shift never exposes the buffer edge.
+        const int Margin=1;
         public Rect OutputRect {get; private set;}
+        // Texels the grid-snapped render trails the smooth camera; applied when upscaling.
+        public Vector2 SubpixelOffset {get; private set;}
         void Awake(){cameraComponent=GetComponent<Camera>();Shader.SetGlobalFloat("_LabContinuous",0);}
         void LateUpdate()
         {
@@ -37,15 +41,25 @@ namespace PixelArtLab
         {
             if(!cameraComponent)cameraComponent=GetComponent<Camera>();
             int height=Mathf.Min(sourceHeight,Mathf.Max(1,Screen.height)),scale=Mathf.Max(1,Screen.height/height),width=Mathf.Max(1,Screen.width/scale);
-            if(pixelated&&(!buffer||buffer.width!=width||buffer.height!=height))
+            int bufferWidth=width+Margin*2,bufferHeight=height+Margin*2;
+            if(pixelated&&(!buffer||buffer.width!=bufferWidth||buffer.height!=bufferHeight))
             {
-                Release();buffer=new RenderTexture(width,height,24){filterMode=FilterMode.Point,antiAliasing=1,name="Exploration Pixel Buffer"};buffer.Create();
+                Release();buffer=new RenderTexture(bufferWidth,bufferHeight,24){filterMode=FilterMode.Point,antiAliasing=1,name="Exploration Pixel Buffer"};buffer.Create();
             }
             float alignedPitch=Mathf.Asin(Mathf.Round(Mathf.Sin(pitch*Mathf.Deg2Rad)*pixelsPerUnit)/pixelsPerUnit)*Mathf.Rad2Deg;
             var rotation=Quaternion.Euler(alignedPitch,yaw,0);var local=Quaternion.Inverse(rotation)*(focus-rotation*Vector3.forward*45);
-            local.x=(Mathf.Round(local.x*pixelsPerUnit-(width&1)*.5f)+(width&1)*.5f)/pixelsPerUnit;
-            local.y=(Mathf.Round(local.y*pixelsPerUnit-(height&1)*.5f)+(height&1)*.5f)/pixelsPerUnit;
-            transform.SetPositionAndRotation(rotation*local,rotation);cameraComponent.orthographicSize=height/(2f*pixelsPerUnit);
+            SubpixelOffset=Vector2.zero;
+            if(pixelated)
+            {
+                // Render from the texel grid so static texels never resample, and hand the
+                // remainder to the upscale: the world then scrolls smoothly instead of in
+                // uneven one- and two-texel jumps.
+                float x=Mathf.Round(local.x*pixelsPerUnit-(width&1)*.5f)+(width&1)*.5f;
+                float y=Mathf.Round(local.y*pixelsPerUnit-(height&1)*.5f)+(height&1)*.5f;
+                SubpixelOffset=new Vector2(local.x*pixelsPerUnit-x,local.y*pixelsPerUnit-y);
+                local.x=x/pixelsPerUnit;local.y=y/pixelsPerUnit;
+            }
+            transform.SetPositionAndRotation(rotation*local,rotation);cameraComponent.orthographicSize=(pixelated?bufferHeight:height)/(2f*pixelsPerUnit);
             cameraComponent.targetTexture=pixelated?buffer:null;Shader.SetGlobalFloat("_LabContinuous",toon?0:1);
             // Keep a real display camera active while the scene camera renders offscreen.
             // The existing OnGUI draws the integer-scaled pixel buffer over its black clear.
@@ -60,7 +74,14 @@ namespace PixelArtLab
         void OnGUI()
         {
             GUI.depth=100;
-            if(pixelated&&buffer){GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height),Texture2D.blackTexture);GUI.DrawTexture(OutputRect,buffer,ScaleMode.StretchToFill);}
+            if(pixelated&&buffer)
+            {
+                GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height),Texture2D.blackTexture);
+                // Shift by whole screen pixels only, so every texel keeps the same integer size.
+                float texel=OutputRect.height/(buffer.height-Margin*2);
+                float x=Mathf.Round((-Margin-SubpixelOffset.x)*texel),y=Mathf.Round((-Margin+SubpixelOffset.y)*texel);
+                GUI.BeginGroup(OutputRect);GUI.DrawTexture(new Rect(x,y,buffer.width*texel,buffer.height*texel),buffer,ScaleMode.StretchToFill);GUI.EndGroup();
+            }
         }
         void Release(){if(buffer){buffer.Release();Destroy(buffer);buffer=null;}}
         void OnDisable(){if(cameraComponent)cameraComponent.targetTexture=null;Release();if(displayClearCamera)Destroy(displayClearCamera.gameObject);Shader.SetGlobalFloat("_LabContinuous",0);}

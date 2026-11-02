@@ -1,5 +1,5 @@
 PLAYER_VISIBILITY_SUCCESS
-Character rim / bounce pixels: 3839
+Character rim / bounce pixels: 3779
 Tree foreground reveal: player pixels 118 -> 3767 PASS
 Reveal leaves reflection geometry unchanged: PASS
 Low sign is excluded and renders unchanged: PASS

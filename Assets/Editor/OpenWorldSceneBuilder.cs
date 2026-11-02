@@ -266,6 +266,37 @@ namespace PixelArtLab.Editor
             var p=Surface(point.x,point.y);Asset("KenneyNature","rock_smallA",p,1.7f,0);
             var g=Asset("KenneyPlatformer","coin-gold",p+Vector3.up*1,1.1f,0,false,true,true);g.name="Ancient waystone";return g.transform;
         }
+        // Authored normals for the knight. Its many small facets each took their own toon band,
+        // which at sprite scale reads as single-texel speckle. Each part's normals lean toward
+        // its bounding-ellipsoid normal (one broad light shape per part) with a little sky bias,
+        // as with the study scene's face, hair and cloak profiles.
+        public static void CharacterNormals(GameObject visual,float shapeWeight=.7f,float upWeight=.15f)
+        {
+            foreach(var renderer in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                var filter=renderer.GetComponent<MeshFilter>();var skinned=renderer as SkinnedMeshRenderer;
+                var profile=renderer.GetComponent<AuthoredNormalProfile>();
+                var source=profile&&profile.geometricMesh?profile.geometricMesh:filter?filter.sharedMesh:skinned?skinned.sharedMesh:null;
+                if(!source)continue;
+                var normals=source.normals;var vertices=source.vertices;var bounds=source.bounds;
+                var extents=Vector3.Max(bounds.extents,Vector3.one*.001f);var up=renderer.transform.InverseTransformDirection(Vector3.up).normalized;
+                for(int i=0;i<normals.Length;i++)
+                {
+                    var d=vertices[i]-bounds.center;var shape=new Vector3(d.x/(extents.x*extents.x),d.y/(extents.y*extents.y),d.z/(extents.z*extents.z));
+                    if(shape.sqrMagnitude<1e-8f)continue;shape.Normalize();
+                    // Inner faces (visor, cape back) point away from the proxy; leave them mostly alone.
+                    float weight=shapeWeight*Mathf.SmoothStep(0,1,(Vector3.Dot(normals[i],shape)+.2f)/.6f);
+                    var n=Vector3.Slerp(normals[i],shape,weight);
+                    normals[i]=Vector3.Slerp(n,up,upWeight*Mathf.SmoothStep(0,1,(Vector3.Dot(n,up)+.3f)/.9f)).normalized;
+                }
+                string path=Generated+"/Knight-"+source.name+"-AuthoredNormals.asset";
+                var mesh=AssetDatabase.LoadAssetAtPath<Mesh>(path);
+                if(!mesh){mesh=UnityEngine.Object.Instantiate(source);mesh.name=source.name+" — broad painted lighting";mesh.normals=normals;AssetDatabase.CreateAsset(mesh,path);}
+                else{mesh.normals=normals;EditorUtility.SetDirty(mesh);}
+                if(!profile)profile=renderer.gameObject.AddComponent<AuthoredNormalProfile>();
+                profile.geometricMesh=source;profile.authoredMesh=mesh;profile.useAuthored=true;profile.Apply();EditorUtility.SetDirty(profile);
+            }
+        }
         static ExplorerMotor Player()
         {
             var g=new GameObject("Player — KayKit Knight");g.transform.position=Surface(0,-2)+Vector3.up*.2f;
@@ -275,6 +306,7 @@ namespace PixelArtLab.Editor
             var idle=AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(source)).OfType<AnimationClip>().First(c=>c.name=="Idle");idle.SampleAnimation(visual,0);
             var b=BoundsOf(visual);visual.transform.localScale*=1.8f/b.size.y;b=BoundsOf(visual);visual.transform.position+=Vector3.up*(g.transform.position.y-b.min.y);
             foreach(var renderer in visual.GetComponentsInChildren<Renderer>())renderer.sharedMaterials=renderer.sharedMaterials.Select(Palette).ToArray();
+            CharacterNormals(visual);
             var animator=visual.GetComponent<Animator>();if(!animator)animator=visual.AddComponent<Animator>();animator.runtimeAnimatorController=Controller();animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
             var player=g.AddComponent<ExplorerMotor>();player.visual=visual.transform;player.animator=animator;player.spawnPoint=g.transform.position;
             var data=g.AddComponent<PixelArtObject>();data.objectId=id++;data.interior=.05f;data.Apply();return player;
