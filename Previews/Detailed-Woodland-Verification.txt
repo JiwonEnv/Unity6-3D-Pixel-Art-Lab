@@ -1,8 +1,8 @@
 DETAILED_WOODLAND_RENDERING_SUCCESS
-Hybrid / Toon pixels changed: 25455
-Normal map pixels changed: 5350
+Hybrid / Toon pixels changed: 25138
+Normal map pixels changed: 5523
 Source normal/ARM maps and double-sided alpha foliage: PASS
 30 detailed placements; 12 rock colliders and 2 trunk colliders: PASS
-Planar reflection pixels changed: 90693
-Wave / ripple pixels changed: 53516
+Planar reflection pixels changed: 90648
+Wave / ripple pixels changed: 55778
 Snow on detailed surfaces: PASS

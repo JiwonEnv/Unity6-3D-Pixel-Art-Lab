@@ -1,0 +1,7 @@
+BACKGROUND_LIGHTING_CAPTURE
+Noon: mean 0.313, p10 0.242, p95 0.414, contrast p95/p10 1.7
+Noon (no post): mean 0.339, p10 0.277, p95 0.429, contrast p95/p10 1.6
+Sunset: mean 0.113, p10 0.070, p95 0.210, contrast p95/p10 3.0
+Sunset (no post): mean 0.124, p10 0.082, p95 0.213, contrast p95/p10 2.6
+Night: mean 0.109, p10 0.069, p95 0.211, contrast p95/p10 3.1
+Night (no post): mean 0.120, p10 0.083, p95 0.214, contrast p95/p10 2.6

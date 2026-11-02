@@ -124,7 +124,7 @@ Shader "PixelArtLab/Sprite Toon"
                 half3 oldLight=ramp*lerp(half3(.9,.95,1.0),lightColor,.38);
                 // Shadow is ambient; visible direct light only ADDS energy. Interpolating
                 // toward a dim sunset/moon color could previously brighten the shadow.
-                half3 ambient=_ShadeColor.rgb*_LabAmbientTint.rgb*lerp(.24,1,_LabEnvironment.y);
+                half3 ambient=_ShadeColor.rgb*_LabAmbientTint.rgb; // strength by time of day: WorldEnvironment
                 half3 timeLight=ambient+lightColor*half3(1.04,1,.86)*band*.65;
                 half wetSpec=step(.975,dot(normalize(lightDir+viewDir),s.normalWS))*n*atten*_LabEnvironment.z*.12;
                 half3 transmitted=s.albedo*lightColor*saturate(-dot(s.normalWS,lightDir))*_LeafTwoSided*.14*atten;

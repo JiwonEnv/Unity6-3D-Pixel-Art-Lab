@@ -41,7 +41,7 @@ namespace PixelArtLab.Editor
             string path=Generated+"/"+name+".mat";var m=AssetDatabase.LoadAssetAtPath<Material>(path);
             if(!m){m=new Material(Shader.Find("PixelArtLab/Sprite Toon"));AssetDatabase.CreateAsset(m,path);}
             m.color=color;m.SetColor("_ShadeColor",new Color(.42f,.42f,.56f));m.SetFloat("_LocalLightStrength",1.2f);
-            if(texture)m.mainTexture=texture;if(emission)m.SetColor("_EmissionColor",color*.6f);return m;
+            if(texture)m.mainTexture=texture;if(emission)m.SetColor("_EmissionColor",color*BackgroundLighting.FlameEmission);return m;
         }
         static Material Palette(Material source)
         {

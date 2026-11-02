@@ -9,15 +9,19 @@ using UnityEngine.Rendering.Universal;
 
 namespace PixelArtLab.Editor
 {
-    // One-time move from the Built-in pipeline to a mobile-tuned URP asset.
-    // Safe to re-run: existing assets are reused and converted materials are skipped.
+    // Moves the project from the Built-in pipeline to a PC-tuned URP asset (see
+    // Docs/Render-Pipeline-Decision.md). Safe to re-run: assets are reused and
+    // converted materials are skipped.
     public static class UrpMigration
     {
-        public const string PipelinePath="Assets/Settings/PixelArtLab-Mobile-URP.asset",RendererPath="Assets/Settings/PixelArtLab-Mobile-Renderer.asset";
-        [MenuItem("Pixel Art Lab/Set Up Mobile URP")]
+        public const string PipelinePath="Assets/Settings/PixelArtLab-PC-URP.asset",RendererPath="Assets/Settings/PixelArtLab-PC-Renderer.asset";
+        [MenuItem("Pixel Art Lab/Set Up PC URP")]
         public static void Setup()
         {
             Directory.CreateDirectory("Assets/Settings");
+            // The first migration targeted mobile; rename in place so GUID references hold.
+            if(File.Exists("Assets/Settings/PixelArtLab-Mobile-URP.asset"))AssetDatabase.MoveAsset("Assets/Settings/PixelArtLab-Mobile-URP.asset",PipelinePath);
+            if(File.Exists("Assets/Settings/PixelArtLab-Mobile-Renderer.asset"))AssetDatabase.MoveAsset("Assets/Settings/PixelArtLab-Mobile-Renderer.asset",RendererPath);
             var renderer=AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RendererPath);
             if(!renderer){renderer=ScriptableObject.CreateInstance<UniversalRendererData>();AssetDatabase.CreateAsset(renderer,RendererPath);}
             ConfigureRenderer(renderer);
@@ -36,7 +40,9 @@ namespace PixelArtLab.Editor
         static void ConfigureRenderer(UniversalRendererData renderer)
         {
             var so=new SerializedObject(renderer);
-            Set(so,"m_RenderingMode",p=>p.intValue=0);      // Forward: per-object light limit, cheapest on tile GPUs
+            // Forward+: no per-object light limit. The ground is one 150m mesh, so plain
+            // Forward capped every practical light on the map at four.
+            Set(so,"m_RenderingMode",p=>p.intValue=2);
             Set(so,"m_DepthPrimingMode",p=>p.intValue=0);
             // A renderer made with CreateInstance has no post-process resources, and URP then
             // silently skips every post effect.
@@ -56,20 +62,22 @@ namespace PixelArtLab.Editor
         static void ConfigurePipeline(UniversalRenderPipelineAsset pipeline,UniversalRendererData renderer)
         {
             var so=new SerializedObject(pipeline);
-            // Pixel art: 1x MSAA, LDR, native scale. Depth/opaque copies are not used by any pass.
-            Set(so,"m_MSAA",p=>p.intValue=1);Set(so,"m_SupportsHDR",p=>p.boolValue=false);Set(so,"m_RenderScale",p=>p.floatValue=1);
+            // Pixel art: 1x MSAA, native scale. HDR so flames and torch pools exceed 1 and the
+            // pixel bloom has light to spread; the buffer is ~640x360, so the cost is small.
+            // Depth/opaque copies are not used by any pass yet.
+            Set(so,"m_MSAA",p=>p.intValue=1);Set(so,"m_SupportsHDR",p=>p.boolValue=true);Set(so,"m_RenderScale",p=>p.floatValue=1);
             Set(so,"m_RequireDepthTexture",p=>p.boolValue=false);Set(so,"m_RequireOpaqueTexture",p=>p.boolValue=false);
             Set(so,"m_UseSRPBatcher",p=>p.boolValue=true);
             // The follow camera sits 45m back, so visible ground spans roughly 30-60m of depth.
             // One 80m cascade covers it whole: a cascade split inside the view slid across the
             // ground with the camera and re-shaped shadow edges as it passed.
             Set(so,"m_MainLightRenderingMode",p=>p.intValue=1);Set(so,"m_MainLightShadowsSupported",p=>p.boolValue=true);
-            Set(so,"m_MainLightShadowmapResolution",p=>p.intValue=2048);
+            Set(so,"m_MainLightShadowmapResolution",p=>p.intValue=4096);
             Set(so,"m_ShadowDistance",p=>p.floatValue=80);Set(so,"m_ShadowCascadeCount",p=>p.intValue=1);
             Set(so,"m_SoftShadowsSupported",p=>p.boolValue=false);
-            // Up to four per-pixel torches; the two nearest cast 512px point shadows.
-            Set(so,"m_AdditionalLightsRenderingMode",p=>p.intValue=1);Set(so,"m_AdditionalLightsPerObjectLimit",p=>p.intValue=4);
-            Set(so,"m_AdditionalLightShadowsSupported",p=>p.boolValue=true);Set(so,"m_AdditionalLightsShadowmapResolution",p=>p.intValue=2048);
+            // Per-pixel practical lights; the nearest ones cast 512px point shadows (WorldEnvironment).
+            Set(so,"m_AdditionalLightsRenderingMode",p=>p.intValue=1);Set(so,"m_AdditionalLightsPerObjectLimit",p=>p.intValue=8);
+            Set(so,"m_AdditionalLightShadowsSupported",p=>p.boolValue=true);Set(so,"m_AdditionalLightsShadowmapResolution",p=>p.intValue=4096);
             Set(so,"m_AdditionalLightsShadowResolutionTierLow",p=>p.intValue=256);Set(so,"m_AdditionalLightsShadowResolutionTierMedium",p=>p.intValue=512);
             Set(so,"m_AdditionalLightsShadowResolutionTierHigh",p=>p.intValue=512);
             var list=so.FindProperty("m_RendererDataList");list.arraySize=1;list.GetArrayElementAtIndex(0).objectReferenceValue=renderer;

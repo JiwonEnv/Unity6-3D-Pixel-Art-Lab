@@ -18,6 +18,13 @@ namespace PixelArtLab
         public Vector2 windDirection=new Vector2(1,.35f);
         public float animationTime;
         [Range(0,1)]public float rain,snow,wetness,snowCover;
+        // Ambient fill as a share of the shadow colour (Docs/Background-Lighting-Design.md L2).
+        // Night drops low so practical lights lead the frame; night shadows lean teal
+        // against the warm torches.
+        [Range(0,1)]public float nightAmbient=.1f;
+        // Moonlight stays below the torches so practical lights lead at night.
+        [Range(0,1)]public float moonIntensity=.3f;
+        public Color nightAmbientTint=new Color(.42f,.62f,.76f),dayAmbientTint=new Color(.95f,.97f,1);
         Color originalSunColor,originalBackground;
         Quaternion originalRotation;
         float originalIntensity;
@@ -26,8 +33,8 @@ namespace PixelArtLab
         public string ClockLabel=>$"{Mathf.FloorToInt(hour):00}:{Mathf.FloorToInt((hour%1)*60):00}";
         void OnEnable()
         {
-            // Shadow distance (one 80m cascade: the follow camera sits 45m away) and the
-            // per-pixel light limit live on the URP asset in Assets/Settings.
+            // Shadow distance (one 80m cascade: the follow camera sits 45m away), Forward+ and
+            // HDR live on the PC URP asset in Assets/Settings.
             if(!sun)sun=RenderSettings.sun;
             if(!worldCamera)worldCamera=Camera.main;
             if(sun){originalSunColor=sun.color;originalIntensity=sun.intensity;originalRotation=sun.transform.rotation;cached=true;}
@@ -77,10 +84,10 @@ namespace PixelArtLab
                 sun.transform.rotation=Quaternion.Euler((hour-6)*15+(day?0:180),-35,0);
                 sun.color=day?Color.Lerp(new Color(1,.95f,.84f),new Color(1,.47f,.24f),sunset):new Color(.55f,.68f,1);
                 sun.color=Color.Lerp(sun.color,new Color(.82f,.88f,1),cloud*.8f);
-                sun.intensity=Mathf.Lerp(.52f,1.05f,Daylight)*(1-cloud*.38f);
+                sun.intensity=Mathf.Lerp(moonIntensity,1.05f,Daylight)*(1-cloud*.38f);
             }
-            Color ambient=Color.Lerp(new Color(.55f,.68f,1),new Color(.95f,.97f,1),Daylight);
-            ambient=Color.Lerp(ambient,new Color(.62f,.72f,.84f),cloud*.45f);
+            Color ambient=Color.Lerp(nightAmbientTint,dayAmbientTint,Daylight);
+            ambient=Color.Lerp(ambient,new Color(.62f,.72f,.84f),cloud*.45f)*Mathf.Lerp(nightAmbient,1,Mathf.Sqrt(Daylight)); // sqrt keeps sunset readable while the sun grazes
             Shader.SetGlobalVector("_LabEnvironment",new Vector4(1,Daylight,wetness,snowCover));
             Shader.SetGlobalColor("_LabAmbientTint",ambient);
             float gust=windEnabled?windStrength*(1+rain*.65f+snow*.25f):0;
