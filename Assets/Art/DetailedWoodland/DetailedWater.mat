@@ -69,6 +69,7 @@ Material:
     - _ReflectionStrength: 0.95
     - _Roughness: 0.18
     - _SemiPBR: 0.8
+    - _SurfaceWeatherExposure: 1
     - _UsePackedARM: 0
     m_Colors:
     - _Color: {r: 0.1, g: 0.25, b: 0.28, a: 1}

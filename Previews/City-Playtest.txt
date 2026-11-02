@@ -1,0 +1,24 @@
+CITY_PLAYTEST_SUCCESS
+PASS Side-scrolling world and motor present
+PASS Character settles on station deck
+PASS Horizontal movement ignores depth input and locks Z
+PASS Air step locked before module
+PASS Dash locked before module
+PASS Distant module cannot be activated
+PASS Reach platform -57.5/9.5; actual (-56.91, 9.54, 0.00)
+PASS Reach platform -53.5/11.0; actual (-53.15, 11.04, 0.00)
+PASS Reach platform -49.5/12.5; actual (-49.27, 12.54, 0.00)
+PASS Reach platform -43.0/14.0; actual (-44.28, 14.04, 0.00)
+PASS Reach Westworks on foot and recover dash
+PASS Dash crosses real 8m Drainway gap
+PASS Recover air step and open return shutter
+PASS Air-step power opens lift shortcut
+PASS Reach platform 44.0/14.0; actual (43.08, 14.04, 0.00)
+PASS Reach platform 48.0/17.5; actual (49.06, 17.54, 0.00)
+PASS Air step reaches the 3.5m Crown ledge
+PASS Reach platform 42.0/20.0; actual (41.25, 20.04, 0.00)
+PASS Reach platform 56.0/22.0; actual (54.66, 22.04, 0.00)
+PASS Reach Crown Relay through playable platforms and restore signal
+PASS Flooded culvert returns to checkpoint
+PASS Character Animator remains active
+NO PLAYER BUILD

@@ -5,6 +5,16 @@ Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. �
 
 ![눈이 내리는 탐험 씬](Previews/19-Weather-Snow.png)
 
+## 새 횡스크롤 도시 씬
+
+**Assets/Scenes/City-Metroidvania-Rendering-Lab.unity** — 무료 Kenney 도시 에셋을 배치한 2.5D 메트로배니아 이동 연구 씬.
+대시 → 공중 점프 → 리프트와 옥상 → 중계기 복구 경로입니다.
+A/D 이동, Space 점프, Ctrl/X 대시, E 상호작용, M 지도.
+기존 픽셀 렌더링·날씨·물 반사·발자국·림과 가림 해소 기능을 적용했습니다.
+[씬 구성·출처·조작 안내](Docs/City-Metroidvania.md)
+
+![도시 역 구역](Previews/City-Station.png)
+
 ## 실행
 
 **상세 에셋 비교:** `Assets/Scenes/Semi-Real-Pixel-Woodland.unity`를 열면

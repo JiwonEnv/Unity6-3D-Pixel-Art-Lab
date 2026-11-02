@@ -26,6 +26,7 @@ Shader "PixelArtLab/Sprite Toon"
         _ReflectionStrength ("Water reflection strength",Range(0,1))=.6
         _Puddles ("Rain puddles on ground",Range(0,1))=0
         _PuddleWetStrength ("Damp soil around puddles",Range(0,1))=1
+        _SurfaceWeatherExposure ("Surface weather exposure",Range(0,1))=1
         _PuddleReflection ("Ground planar reflection",2D)="black"{}
         _CharacterRim ("Character rim strength",Range(0,1))=0
         _CharacterBounce ("Character bounce fill",Range(0,1))=0
@@ -57,7 +58,7 @@ Shader "PixelArtLab/Sprite Toon"
         half _SemiPBR,_NormalScale,_UsePackedARM,_Roughness,_AOStrength,_Metallic,_AlphaClip,_Cutoff,_LeafTwoSided,_ReflectionStrength;
         float _LabDetailedToon,_LabNormalDisabled,_LabReflectionDisabled;
         sampler2D _PuddleReflection;
-        float _Puddles,_PuddleWetStrength;
+        float _Puddles,_PuddleWetStrength,_SurfaceWeatherExposure;
         half _LabCharacter,_CharacterRim,_CharacterBounce;
         float4x4 _PuddleProjection;float _PuddleCaptureHeight;
         float4x4 _DetailProjection;float _DetailCaptureHeight;
@@ -94,7 +95,7 @@ Shader "PixelArtLab/Sprite Toon"
             // toward a dim sunset/moon color could previously brighten the shadow.
             half3 ambient=_ShadeColor.rgb*_LabAmbientTint.rgb*lerp(.24,1,_LabEnvironment.y);
             half3 timeLight=ambient+_LightColor0.rgb*half3(1.04,1,.86)*band*.65;
-            half wetSpec=step(.975,dot(normalize(lightDir+viewDir),s.Normal))*n*atten*_LabEnvironment.z*.12;
+            half wetSpec=step(.975,dot(normalize(lightDir+viewDir),s.Normal))*n*atten*_LabEnvironment.z*.12*_SurfaceWeatherExposure;
             half3 transmitted=s.Albedo*_LightColor0.rgb*saturate(-dot(s.Normal,lightDir))*_LeafTwoSided*.14*atten;
             return half4(s.Albedo * lerp(oldLight,timeLight,_LabEnvironment.x)+_LightColor0.rgb*wetSpec+SurfaceSpecular(s,lightDir,viewDir,atten)*detail+transmitted,1);
             #endif
@@ -138,11 +139,11 @@ Shader "PixelArtLab/Sprite Toon"
             if(_LabEnvironment.x>.5)
             {
                 float top=saturate((worldNormal.y-.20)*1.6);
-                float snow=floor(saturate(_LabEnvironment.w*top)*4+.2)/4;
+                float snow=floor(saturate(_LabEnvironment.w*top*_SurfaceWeatherExposure)*4+.2)/4;
                 float emissive=saturate(max(_EmissionColor.r,max(_EmissionColor.g,_EmissionColor.b))*3);
                 if(_LabWindParams.x<3.5)
                 {
-                    o.Albedo*=1-_LabEnvironment.z*.17*(1-emissive);
+                    o.Albedo*=1-_LabEnvironment.z*.17*_SurfaceWeatherExposure*(1-emissive);
                     o.Albedo=lerp(o.Albedo,half3(.86,.91,.95),snow*(1-emissive));
                 }
                 float cloud=sin(IN.worldPos.x*.085+_LabWeatherTime*.04)+sin(IN.worldPos.z*.11-_LabWeatherTime*.03);
