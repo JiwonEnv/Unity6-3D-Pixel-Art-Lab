@@ -8,7 +8,11 @@ namespace PixelArtLab
     public sealed class PuddleFootsteps : MonoBehaviour
     {
         public ExplorerMotor player;
-        public WorldEnvironment environment;
+        [Tooltip("Leave empty to use the active EnvironmentState.")]
+        public EnvironmentState environment;
+        EnvironmentState Env=>environment?environment:EnvironmentState.Active;
+        [Tooltip("Droplets face this camera. Empty: Camera.main.")]
+        public Camera targetCamera;
         public int EmittedCount {get;private set;}
         struct Step {public Vector3 position,normal;public float birth,strength;}
         readonly Step[] steps=new Step[12];
@@ -29,7 +33,7 @@ namespace PixelArtLab
         }
         void LateUpdate()
         {
-            Ensure();if(!player||!environment)return;
+            Ensure();if(!player||!Env)return;
             Vector3 current=player.transform.position;
             if(!initialized){previous=current;grounded=player.Grounded;initialized=true;}
             Vector3 delta=current-previous;delta.y=0;
@@ -52,6 +56,7 @@ namespace PixelArtLab
         }
         public bool TryStep(Vector3 position,float strength=1)
         {
+            var environment=Env;
             if(!environment||!PuddleSurface.Ground(position,out var hit))return false;
             if(PuddleSurface.Coverage(hit.point,hit.normal,environment.wetness,environment.snowCover)<.3f)return false;
             Ensure();steps[next]=new Step{position=hit.point+hit.normal*.055f,normal=hit.normal,birth=Time.time,strength=strength};next=(next+1)%steps.Length;EmittedCount++;return true;
@@ -59,7 +64,7 @@ namespace PixelArtLab
         public void Refresh(float now)
         {
             Ensure();vertices.Clear();colors.Clear();triangles.Clear();
-            var camera=environment?environment.worldCamera:null;if(!camera)return;
+            var environment=Env;var camera=targetCamera?targetCamera:Camera.main;if(!environment||!camera)return;
             foreach(var step in steps)
             {
                 float age=now-step.birth;if(age<0||age>.85f)continue;

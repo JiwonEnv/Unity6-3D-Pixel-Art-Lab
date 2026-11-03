@@ -1,12 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PixelArtLab
 {
-    // A placed light source (lantern, lamp, campfire) driven by WorldEnvironment's time of day.
-    // Its visible glass or flame glows in step with the light so lit and unlit lamps both read.
-    [DisallowMultipleComponent,RequireComponent(typeof(Light))]
+    // A placed light source (lantern, lamp, campfire). PracticalLightManager drives it from the
+    // time of day; its visible glass or flame glows in step so lit and unlit lamps both read.
+    // Every enabled instance registers itself, so no scene list has to be maintained.
+    [ExecuteAlways,DisallowMultipleComponent,RequireComponent(typeof(Light))]
     public sealed class PracticalLight : MonoBehaviour
     {
+        static readonly List<PracticalLight> all=new List<PracticalLight>();
+        public static IReadOnlyList<PracticalLight> All=>all;
+        Light cachedLight;
+        public Light Light=>cachedLight?cachedLight:cachedLight=GetComponent<Light>();
+        void OnEnable(){if(!all.Contains(this))all.Add(this);}
+        void OnDisable(){all.Remove(this);}
         public float dayIntensity,nightIntensity=2.5f;
         [ColorUsage(false,true)]public Color glowColor=new Color(2.2f,1.45f,.8f);
         public Renderer[] glow;
@@ -20,7 +28,7 @@ namespace PixelArtLab
         Vector3 restPosition,restWorld;bool rested;
         public void Apply(float daylight,float time=0)
         {
-            var light=GetComponent<Light>();
+            var light=Light;
             // Seed from the world rest position so each lamp flickers out of phase with the
             // others (the light's local offset is the same inside every lantern).
             if(!rested){restPosition=transform.localPosition;restWorld=transform.position;rested=true;}

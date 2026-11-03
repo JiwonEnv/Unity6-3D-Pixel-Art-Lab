@@ -5,7 +5,13 @@ namespace PixelArtLab
     [ExecuteAlways,RequireComponent(typeof(MeshFilter),typeof(MeshRenderer))]
     public sealed class PixelWeatherParticles : MonoBehaviour
     {
-        public WorldEnvironment environment;
+        [Tooltip("Leave empty to use the active EnvironmentState.")]
+        public EnvironmentState environment;
+        EnvironmentState Env=>environment?environment:EnvironmentState.Active;
+        [Tooltip("Camera whose pixel grid the drops snap to. Empty: Camera.main.")]
+        public Camera targetCamera;
+        [Tooltip("Drops fall around this point (usually the player). Empty: 45m in front of the camera.")]
+        public Transform anchor;
         public Material weatherMaterial;
         const int RainCount=320,SnowCount=220,SplashCount=36,Quads=RainCount+SnowCount+SplashCount*4;
         Mesh mesh;
@@ -28,14 +34,15 @@ namespace PixelArtLab
         void LateUpdate()=>Refresh();
         public void Refresh(bool force=false)
         {
-            if(!environment||!environment.worldCamera||!mesh)return;
-            var camera=environment.worldCamera;Vector3 anchor=environment.player?environment.player.transform.position:camera.transform.position+camera.transform.forward*45;
+            var environment=Env;var camera=targetCamera?targetCamera:Camera.main;
+            if(!environment||!camera||!mesh)return;
+            Vector3 focus=anchor?anchor.position:camera.transform.position+camera.transform.forward*45;
             int tick=Mathf.FloorToInt(environment.animationTime*12);
-            if(!force&&tick==lastTick&&(anchor-lastAnchor).sqrMagnitude<.01f)return;lastTick=tick;lastAnchor=anchor;
+            if(!force&&tick==lastTick&&(focus-lastAnchor).sqrMagnitude<.01f)return;lastTick=tick;lastAnchor=focus;
             System.Array.Clear(vertices,0,vertices.Length);System.Array.Clear(colors,0,colors.Length);
             float unit=camera.orthographicSize*2/(camera.targetTexture?camera.targetTexture.height:360);PixelUnit=unit;float time=tick/12f;
             int rain=Mathf.RoundToInt(RainCount*environment.rain),snow=Mathf.RoundToInt(SnowCount*environment.snow);ActiveDrops=rain+snow;
-            float ax=Mathf.Floor(anchor.x/4)*4,az=Mathf.Floor(anchor.z/4)*4;
+            float ax=Mathf.Floor(focus.x/4)*4,az=Mathf.Floor(focus.z/4)*4;
             var rotation=camera.transform.rotation;var inverse=Quaternion.Inverse(rotation);Vector3 right=camera.transform.right,up=camera.transform.up;
             var wind=environment.windEnabled?new Vector3(environment.windDirection.x,0,environment.windDirection.y)*environment.windStrength:Vector3.zero;
             for(int i=0;i<rain+snow;i++)
@@ -45,7 +52,7 @@ namespace PixelArtLab
                 float x=ax+Mathf.Repeat(seed.x*32+wind.x*time*(isSnow?.7f:2),32)-16;
                 float z=az+Mathf.Repeat(seed.z*32+wind.z*time*(isSnow?.7f:2),32)-16;
                 if(isSnow){x+=Mathf.Sin(time*.9f+seed.y*20)*.45f;z+=Mathf.Cos(time*.7f+seed.x*20)*.3f;}
-                float ground=Ground(x,z,anchor.y);
+                float ground=Ground(x,z,focus.y);
                 Vector3 position=new Vector3(x,ground+Mathf.Repeat(seed.y*17-time*speed,17)+.12f,z);
                 int width=isSnow?2:1,height=isSnow?2:5;Vector3 local=inverse*position;
                 float halfX=(width&1)*.5f,halfY=(height&1)*.5f;
@@ -57,7 +64,7 @@ namespace PixelArtLab
             {
                 var seed=seeds[RainCount+SnowCount+i];float x=ax+seed.x*28-14,z=az+seed.z*28-14;
                 float age=Mathf.Repeat(time*1.7f+seed.y,1),radius=(2+Mathf.Floor(age*4))*unit;
-                Vector3 center=new Vector3(x,Ground(x,z,anchor.y)+.04f,z);float thickness=unit*.55f;Color color=new Color(.64f,.81f,.85f,(1-age)*.65f);
+                Vector3 center=new Vector3(x,Ground(x,z,focus.y)+.04f,z);float thickness=unit*.55f;Color color=new Color(.64f,.81f,.85f,(1-age)*.65f);
                 int first=RainCount+SnowCount+i*4;
                 Quad(first,center+Vector3.forward*radius,Vector3.right*radius,Vector3.forward*thickness,color);
                 Quad(first+1,center-Vector3.forward*radius,Vector3.right*radius,Vector3.forward*thickness,color);

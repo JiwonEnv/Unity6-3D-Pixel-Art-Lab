@@ -8,7 +8,9 @@ namespace PixelArtLab
     public sealed class SnowFootprints : MonoBehaviour
     {
         public ExplorerMotor player;
-        public WorldEnvironment environment;
+        [Tooltip("Leave empty to use the active EnvironmentState.")]
+        public EnvironmentState environment;
+        EnvironmentState Env=>environment?environment:EnvironmentState.Active;
         [Range(0,1)]public float minimumSnow=.4f;
         public float lifetime=18;
         public int EmittedCount {get;private set;}
@@ -27,7 +29,7 @@ namespace PixelArtLab
         }
         void LateUpdate()
         {
-            Ensure();if(!player||!environment)return;
+            Ensure();if(!player||!Env)return;
             Vector3 current=player.transform.position,delta=current-previous;delta.y=0;
             if(!initialized){previous=current;grounded=player.Grounded;initialized=true;delta=Vector3.zero;}
             if(delta.magnitude>4)distance=0;
@@ -47,13 +49,14 @@ namespace PixelArtLab
         }
         public bool TryPlace(Vector3 position,Vector3 forward)
         {
+            var environment=Env;
             if(!environment||environment.snowCover<minimumSnow||!PuddleSurface.Ground(position,out var hit)||hit.normal.y<.88f)return false;
             Ensure();prints[next]=new Print{position=hit.point+hit.normal*.058f,normal=hit.normal,forward=Vector3.ProjectOnPlane(forward,hit.normal).normalized,birth=Time.time};next=(next+1)%prints.Length;EmittedCount++;return true;
         }
         public void Refresh(float now)
         {
             Ensure();vertices.Clear();colors.Clear();indices.Clear();
-            if(!environment)return;
+            var environment=Env;if(!environment)return;
             foreach(var print in prints)
             {
                 float age=now-print.birth;if(age<0||age>=lifetime)continue;

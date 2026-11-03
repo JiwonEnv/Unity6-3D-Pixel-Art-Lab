@@ -80,7 +80,7 @@ namespace PixelArtLab.Editor
             Set(so,"m_MainLightShadowmapResolution",p=>p.intValue=4096);
             Set(so,"m_ShadowDistance",p=>p.floatValue=80);Set(so,"m_ShadowCascadeCount",p=>p.intValue=1);
             Set(so,"m_SoftShadowsSupported",p=>p.boolValue=false);
-            // Per-pixel practical lights; the nearest ones cast 512px point shadows (WorldEnvironment).
+            // Per-pixel practical lights; the nearest ones cast 512px point shadows (PracticalLightManager).
             Set(so,"m_AdditionalLightsRenderingMode",p=>p.intValue=1);Set(so,"m_AdditionalLightsPerObjectLimit",p=>p.intValue=8);
             Set(so,"m_AdditionalLightShadowsSupported",p=>p.boolValue=true);Set(so,"m_AdditionalLightsShadowmapResolution",p=>p.intValue=4096);
             Set(so,"m_AdditionalLightsShadowResolutionTierLow",p=>p.intValue=256);Set(so,"m_AdditionalLightsShadowResolutionTierMedium",p=>p.intValue=512);

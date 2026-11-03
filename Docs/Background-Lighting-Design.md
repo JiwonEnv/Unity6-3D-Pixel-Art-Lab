@@ -96,6 +96,9 @@ Replaced 캡처(바 실내, 창고) 기준:
 - 어두운 배경에서도 캐릭터 실루엣 외곽선, 림 라이트 밴드, 계단식 애니메이션은 유지한다.
 - 캐릭터에는 그레이딩과 안개를 약하게 적용해 배경과 분리한다.
 
+
+> R1(2026-11-03) 이후 아래 단계 기록의 `WorldEnvironment` 값들은 `TimeOfDayProfile`·`WeatherProfile`(SO)과 `EnvironmentState`·드라이버로 옮겨졌다. 값 자체는 같다. 구조는 [프로젝트 규칙](Conventions.md) 5장 참고.
+
 ## 5. 1단계 결과 (2026-11-02)
 
 - URP 에셋을 PC용으로 바꿨다(`RP_PixelArtLab_PC`, R0에서 이름 변경): HDR, Forward+, 주광 그림자 4096, 보조 광원 그림자 아틀라스 4096. 모바일 이름이던 에셋은 GUID를 유지한 채 이름만 바꿨다.

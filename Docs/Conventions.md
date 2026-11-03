@@ -20,6 +20,7 @@ Assets
    │  ├─ Atmosphere                 픽셀 볼류메트릭
    │  └─ Character                  예제 캐릭터 이동 (R3에서 기능과 분리 예정)
    ├─ Shaders                       Sprite Toon, 선화, 볼류메트릭, 강수 (R2에서 기능별 모듈로 분리 예정)
+   ├─ Presets                       기본 프로필 (SO_TimeOfDay_Default, SO_Weather_Default)
    ├─ Editor                        재사용 에디터 도구 (PixelArtLab.Editor)
    │  ├─ Setup                      URP 파이프라인 설정
    │  └─ Tools                      프로젝트 점검 도구
@@ -27,7 +28,7 @@ Assets
    └─ Samples                       이 프로젝트 전용 예제 (다른 프로젝트로 옮기지 않음)
       ├─ Runtime                    예제 게임플레이·비교 조작 (PixelArtLab.Samples)
       ├─ Editor                     씬 생성·검증·단계 적용 스크립트 (PixelArtLab.Samples.Editor)
-      └─ Settings                   Woodland 전용 Volume 프로필 (VP_)
+      └─ Settings                   Woodland 전용 프로필 (SO_TimeOfDay_Woodland, VP_)
 ```
 
 - 씬(`Assets/Scenes`), 아트(`Assets/Art`), 외부 에셋(`Assets/ThirdParty`)은 예제 콘텐츠다. 씬 생성 스크립트가 경로 문자열로 참조하므로 R0에서는 옮기지 않았다(R4에서 기술별 테스트 씬과 함께 정리).
@@ -74,24 +75,53 @@ Assets
 - 코드는 숫자를 직접 쓰지 않고 `PixelArtLab.LabLayers`를 쓴다. 다른 프로젝트에서 레이어 번호가 다르면 이 파일만 고친다.
 - 이름은 `Project Settings > Tags and Layers`에 설정한다.
 
-## 5. 다른 프로젝트로 옮기는 방법 (R0 기준)
+## 5. 환경 코어 (R1)
 
-1. `Assets/PixelArtLab`에서 `Runtime`, `Shaders`, `Editor`, `Settings`를 복사한다(`Samples`는 제외).
+```mermaid
+flowchart LR
+    T["TimeOfDayProfile (SO)<br>해·달·주변광·하늘·안개·색 보정"] --> S
+    W["WeatherProfile (SO)<br>날씨 전환 속도·구름·돌풍"] --> S
+    S["EnvironmentState<br>시각·날씨·바람 + _Lab 셰이더 전역값"] -- Applied --> D1["SunMoonDriver"]
+    S -- Applied --> D2["SkyFogDriver"]
+    S -- Applied --> D3["PracticalLightManager"]
+    S -- Applied --> D4["TimeOfDayGrading"]
+    D3 --> P["PracticalLight (자동 등록)"]
+```
+
+| 구성 | 역할 | 필수 |
+| --- | --- | --- |
+| `EnvironmentState` | 시각·날씨·바람·애니메이션 시간을 갖고, 하늘 값(Daylight, Dusk 등)을 계산해 셰이더 전역값을 보낸다 | O |
+| `TimeOfDayProfile` | 시간대별 색·세기·안개·색 보정 프로필. 아트 방향마다 하나 | 선택 (없으면 기본값) |
+| `WeatherProfile` | 비·눈 전환 속도, 젖음·마름, 구름·돌풍 영향 | 선택 (없으면 기본값) |
+| `SunMoonDriver` | 방향광 하나를 해·달로 움직이고 색·세기를 바꾼다 | 선택 |
+| `SkyFogDriver` | 카메라 배경색과 Unity 거리 안개 | 선택 |
+| `PracticalLightManager` | 모든 `PracticalLight`의 밝기·일렁임과 가까운 N개 그림자 | 선택 |
+| `TimeOfDayGrading` | 프로필의 색 보정 Volume 5개를 실행 중에 만들어 해에 따라 섞는다(씬에 저장되지 않음) | 선택 |
+
+- 기능은 `EnvironmentState.Applied` 이벤트로 연결된다. `Apply()` 한 번이면 모든 드라이버가 함께 바뀐다.
+- `PracticalLight`는 켜지면 스스로 등록된다. 씬마다 조명 목록을 관리하지 않는다.
+- 이 프로젝트의 `WorldEnvironment`는 이제 **Samples 쪽 얇은 연결부**다. 데모 단축키(F1~F4, 1~3, L, B, V, U)와 예전 API만 남겼다.
+- 예전 씬은 `Pixel Art Lab > Environment > Migrate Sample Scenes`로 옮겼다(값은 그대로 유지).
+
+## 6. 다른 프로젝트로 옮기는 방법
+
+1. `Assets/PixelArtLab`에서 `Runtime`, `Shaders`, `Editor`, `Settings`, `Presets`를 복사한다(`Samples`는 제외).
 2. URP 17.3 패키지를 설치하고 `Pixel Art Lab > Set Up PC URP`를 실행한다.
 3. 레이어 4/8/13을 비워 두거나 `LabLayers`를 그 프로젝트 번호로 바꾼다.
-4. `Pixel Art Lab > Tools > Check Missing Scripts`로 누락 스크립트를 확인한다.
+4. 환경 오브젝트에 `EnvironmentState`와 필요한 드라이버를 붙이고, 프로필을 지정하거나 `Create > Pixel Art Lab > Environment`로 새로 만든다.
+5. `Pixel Art Lab > Tools > Check Missing Scripts`로 누락 스크립트를 확인한다.
 
 현재 한계(이후 단계에서 해결):
-- 여러 기능이 `WorldEnvironment` 하나와 예제 캐릭터(`ExplorerMotor`)에 의존한다 → R1·R3
+- 발자국·파문·가림 해소·캐릭터 정렬이 예제 캐릭터(`ExplorerMotor`)에 의존한다 → R3
 - Sprite Toon 하나에 모든 표면 기능이 들어 있다 → R2
 - 강수 입자에 예제 호수 위치가 박혀 있다 → R3
 
-## 6. 로드맵
+## 7. 로드맵
 
 | 단계 | 내용 | 상태 |
 | --- | --- | --- |
 | R0 | 폴더·어셈블리·이름 규칙·레이어 정리 | 완료 |
-| R1 | 환경 코어 분리, 시간대·날씨 프로필 SO | 예정 |
+| R1 | 환경 코어 분리, 시간대·날씨 프로필 SO | 완료 |
 | R2 | Sprite Toon 기능별 모듈·키워드 분리 | 예정 |
 | R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 예정 |
 | R4 | 기술별 테스트 씬과 검증 | 예정 |

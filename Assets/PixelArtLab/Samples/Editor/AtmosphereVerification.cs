@@ -36,7 +36,7 @@ namespace PixelArtLab.Editor
             try
             {
                 var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();var particles=UnityEngine.Object.FindFirstObjectByType<PixelWeatherParticles>();
-                Require(env&&particles,"Environment components missing after scene reload");env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(ValleyWeather.Clear,true);particles.Refresh(true);
+                Require(env&&particles,"Environment components missing after scene reload");env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(WeatherKind.Clear,true);particles.Refresh(true);
                 var camera=env.worldCamera;var oldTarget=camera.targetTexture;var target=new RenderTexture(640,360,24){filterMode=FilterMode.Point};target.Create();camera.targetTexture=target;
                 var report=new List<string>();var day=Render(camera);float dayBrightness=Brightness(day),dayTorch=env.torches[0].intensity;
                 env.hour=0;env.Apply();particles.Refresh(true);var night=Render(camera);float nightBrightness=Brightness(night);
@@ -44,15 +44,15 @@ namespace PixelArtLab.Editor
                 report.Add($"Day/night mean brightness: {dayBrightness:F3}/{nightBrightness:F3}; night torches: PASS");
                 Save("Previews/22-Playable-Night.png",night,640,360);
                 env.hour=17.5f;env.Apply();Require(env.sun.color.r>env.sun.color.g&&env.sun.color.g>env.sun.color.b,"Sunset key light is not warm");report.Add("Warm sunset key and long-angle sun: PASS");
-                env.hour=13;env.SetWeather(ValleyWeather.Rain,true);particles.Refresh(true);var rain=Render(camera);
+                env.hour=13;env.SetWeather(WeatherKind.Rain,true);particles.Refresh(true);var rain=Render(camera);
                 Require(particles.ActiveDrops==320&&env.wetness>.9f,"Rain did not activate");Require(Difference(day,rain)>1000,"Rain rendering unchanged");
                 report.Add("Rain: 320 source-pixel streaks, wet surfaces and splashes PASS");
-                env.SetWeather(ValleyWeather.Snow,true);particles.Refresh(true);var snow=Render(camera);
+                env.SetWeather(WeatherKind.Snow,true);particles.Refresh(true);var snow=Render(camera);
                 Require(particles.ActiveDrops==220&&env.snowCover>.9f,"Snow did not activate");Require(Difference(rain,snow)>1000,"Snow rendering unchanged");
                 var vertex=particles.GetComponent<MeshFilter>().sharedMesh.vertices;
                 var a=camera.WorldToViewportPoint(vertex[0]);var b=camera.WorldToViewportPoint(vertex[1]);
                 Require(Mathf.Abs(Mathf.Abs(b.x-a.x)*640-2)<.02f,"Snowflake width is not two source pixels");report.Add("Snow: 220 two-pixel flakes and upward-facing coverage PASS");
-                env.SetWeather(ValleyWeather.Clear,true);particles.Refresh(true);env.waterEnabled=false;env.windEnabled=true;
+                env.SetWeather(WeatherKind.Clear,true);particles.Refresh(true);env.waterEnabled=false;env.windEnabled=true;
                 env.animationTime=1;env.Apply();Shader.SetGlobalFloat("_LabCloudCover",0);var windA=Render(camera);
                 env.animationTime=3;env.Apply();Shader.SetGlobalFloat("_LabCloudCover",0);var windB=Render(camera);int windDifference=Difference(windA,windB);
                 Require(windDifference>50,"Vegetation wind has no visible movement");

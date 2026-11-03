@@ -72,7 +72,7 @@ namespace PixelArtLab.Editor
             lake.GetComponent<MeshRenderer>().sharedMaterial=water;
             var follow=UnityEngine.Object.FindFirstObjectByType<ExplorationCamera>();var player=UnityEngine.Object.FindFirstObjectByType<ExplorerMotor>();
             follow.pixelsPerUnit=40;follow.GetComponent<Camera>().orthographicSize=6;follow.lookOffset=Vector3.zero;
-            var environment=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();environment.hour=13;environment.SetWeather(ValleyWeather.Clear,true);environment.runClock=true;
+            var environment=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();environment.hour=13;environment.SetWeather(WeatherKind.Clear,true);environment.runClock=true;
             var rain=UnityEngine.Object.FindFirstObjectByType<PixelWeatherParticles>();if(rain)rain.gameObject.layer=LabLayers.Effects;
             var reflection=lake.GetComponent<DetailWaterReflection>();if(!reflection)reflection=lake.AddComponent<DetailWaterReflection>();reflection.source=follow.GetComponent<Camera>();reflection.waterMaterial=water;
             var controls=UnityEngine.Object.FindFirstObjectByType<DetailLookControls>();if(!controls)controls=new GameObject("Detailed Asset Comparison Controls").AddComponent<DetailLookControls>();controls.follow=follow;controls.player=player;controls.water=reflection;controls.style=0;controls.Apply();
@@ -158,7 +158,7 @@ namespace PixelArtLab.Editor
         static void Preview(WorldEnvironment env,DetailWaterReflection reflection)
         {
             var camera=env.worldCamera;var oldPosition=camera.transform.position;var rotation=camera.transform.rotation;var oldSize=camera.orthographicSize;float oldAspect=camera.aspect;camera.aspect=640f/360;
-            env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(ValleyWeather.Clear,true);
+            env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(WeatherKind.Clear,true);
             camera.transform.position=new Vector3(-5,2,2)-camera.transform.forward*45;camera.orthographicSize=5.8f;
             Shader.SetGlobalFloat("_LabDetailedToon",0);reflection.Refresh();OpenWorldSceneBuilder.Capture(camera,"Previews/25-Detailed-Woodland-Hybrid.png");
             Shader.SetGlobalFloat("_LabDetailedToon",1);reflection.Refresh();OpenWorldSceneBuilder.Capture(camera,"Previews/26-Detailed-Woodland-Toon.png");
@@ -166,7 +166,7 @@ namespace PixelArtLab.Editor
             reflection.Refresh();OpenWorldSceneBuilder.Capture(camera,"Previews/27-Detailed-Lake.png");
             env.animationTime=3.2f;env.Apply();reflection.Refresh();OpenWorldSceneBuilder.Capture(camera,"Previews/28-Detailed-Lake-Moving.png");
             env.hour=0;env.Apply();camera.transform.position=new Vector3(-5,2,2)-camera.transform.forward*45;camera.orthographicSize=5.8f;reflection.Refresh();OpenWorldSceneBuilder.Capture(camera,"Previews/29-Detailed-Woodland-Night.png");
-            env.hour=14;env.animationTime=0;env.runClock=true;env.SetWeather(ValleyWeather.Clear,true);camera.transform.SetPositionAndRotation(oldPosition,rotation);camera.orthographicSize=oldSize;camera.aspect=oldAspect;reflection.waterMaterial.SetTexture("_DetailReflection",null);
+            env.hour=14;env.animationTime=0;env.runClock=true;env.SetWeather(WeatherKind.Clear,true);camera.transform.SetPositionAndRotation(oldPosition,rotation);camera.orthographicSize=oldSize;camera.aspect=oldAspect;reflection.waterMaterial.SetTexture("_DetailReflection",null);
         }
     }
 }

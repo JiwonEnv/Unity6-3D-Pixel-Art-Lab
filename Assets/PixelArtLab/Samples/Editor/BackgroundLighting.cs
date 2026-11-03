@@ -132,7 +132,7 @@ namespace PixelArtLab.Editor
             EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
             var env=Object.FindFirstObjectByType<WorldEnvironment>();
             var air=env.worldCamera.GetComponent<PixelVolumetrics>();if(!air)air=env.worldCamera.gameObject.AddComponent<PixelVolumetrics>();
-            air.shader=Shader.Find("Hidden/PixelArtLab/Volumetrics");air.environment=env;
+            air.shader=Shader.Find("Hidden/PixelArtLab/Volumetrics");air.environment=env.State;
             // Tuned values, written explicitly so re-running reproduces them.
             air.steps=24;air.airDensity=.01f;air.mediumTop=8;air.maxMarch=30;air.sunStrength=.08f;air.lampStrength=.15f;air.lampGlowReach=.6f;air.moonScatter=.25f;air.bandStep=.035f;
             EditorUtility.SetDirty(air);
@@ -149,44 +149,47 @@ namespace PixelArtLab.Editor
         {
             EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
             var env=Object.FindFirstObjectByType<WorldEnvironment>();
-            env.dayGrade=GradeVolume("Grade - Day",profile=>
+            // The grades belong to the woodland's time-of-day profile; TimeOfDayGrading blends them.
+            var time=EnvironmentMigration.WoodlandTimeOfDay();
+            time.dayGrade=GradeProfile("Grade - Day",profile=>
             {
                 var white=profile.Add<WhiteBalance>(true);white.temperature.Override(4);
                 var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(6);adjust.contrast.Override(4);
             });
-            // Dusk runs vermilion -> pink -> violet as the sun sinks (WorldEnvironment blends them).
-            env.duskVermilionGrade=GradeVolume("Grade - Dusk Vermilion",profile=>
+            // Dusk runs vermilion -> pink -> violet as the sun sinks.
+            time.duskVermilionGrade=GradeProfile("Grade - Dusk Vermilion",profile=>
             {
                 var white=profile.Add<WhiteBalance>(true);white.temperature.Override(25);white.tint.Override(6);
                 var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.55f,.30f,.35f));split.highlights.Override(new Color(1,.5f,.25f));split.balance.Override(-10);
                 var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(14);
             });
-            env.duskPinkGrade=GradeVolume("Grade - Dusk Pink",profile=>
+            time.duskPinkGrade=GradeProfile("Grade - Dusk Pink",profile=>
             {
                 var white=profile.Add<WhiteBalance>(true);white.temperature.Override(12);white.tint.Override(22);
                 var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.50f,.32f,.55f));split.highlights.Override(new Color(1,.6f,.72f));split.balance.Override(-5);
                 var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(10);
             });
-            env.duskVioletGrade=GradeVolume("Grade - Dusk Violet",profile=>
+            time.duskVioletGrade=GradeProfile("Grade - Dusk Violet",profile=>
             {
                 var white=profile.Add<WhiteBalance>(true);white.temperature.Override(-6);white.tint.Override(18);
                 var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.36f,.28f,.60f));split.highlights.Override(new Color(.85f,.6f,.95f));split.balance.Override(5);
                 var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(4);
             });
             // Night: cool teal shadows; highlights stay warm so lamps keep their colour.
-            env.nightGrade=GradeVolume("Grade - Night",profile=>
+            time.nightGrade=GradeProfile("Grade - Night",profile=>
             {
                 var white=profile.Add<WhiteBalance>(true);white.temperature.Override(-18);white.tint.Override(-4);
                 var split=profile.Add<SplitToning>(true);split.shadows.Override(new Color(.22f,.40f,.48f));split.highlights.Override(new Color(1,.72f,.46f));split.balance.Override(20);
                 var adjust=profile.Add<ColorAdjustments>(true);adjust.saturation.Override(-4);adjust.contrast.Override(6);
             });
             // The single golden-hour grade was replaced by the three dusk grades.
-            var oldGolden=GameObject.Find("Grade - Golden Hour");if(oldGolden)Object.DestroyImmediate(oldGolden);
-            EditorUtility.SetDirty(env);env.Apply();
+            EditorUtility.SetDirty(time);
+            env.State.timeOfDay=time;if(!env.GetComponent<TimeOfDayGrading>())env.gameObject.AddComponent<TimeOfDayGrading>();
+            EditorUtility.SetDirty(env.State);env.Apply();
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());AssetDatabase.SaveAssets();
             Debug.Log("BACKGROUND_LIGHTING_PHASE5_APPLIED");
         }
-        static Volume GradeVolume(string name,System.Action<VolumeProfile> build)
+        static VolumeProfile GradeProfile(string name,System.Action<VolumeProfile> build)
         {
             // Rebuilt each run; effect settings live as sub-assets of the profile file.
             string path=SettingsFolder+"/VP_Woodland_"+name.Replace("Grade - ","Grade_").Replace(" ","")+".asset";
@@ -194,8 +197,9 @@ namespace PixelArtLab.Editor
             var profile=ScriptableObject.CreateInstance<VolumeProfile>();AssetDatabase.CreateAsset(profile,path);build(profile);
             foreach(var component in profile.components){component.hideFlags=HideFlags.HideInInspector|HideFlags.HideInHierarchy;AssetDatabase.AddObjectToAsset(component,profile);}
             EditorUtility.SetDirty(profile);
+            // Grading used to live in scene volumes of this name; TimeOfDayGrading creates them now.
             var existing=GameObject.Find(name);if(existing)Object.DestroyImmediate(existing);
-            var volume=new GameObject(name).AddComponent<Volume>();volume.isGlobal=true;volume.priority=1;volume.sharedProfile=profile;return volume;
+            return profile;
         }
 
         // Play-mode captures of the live pixel buffer (post-processing only runs there).

@@ -16,7 +16,7 @@ namespace PixelArtLab.Editor
         static void Require(bool c,string message){if(!c)throw new Exception(message);}
         public static void Run()
         {
-            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.runClock=false;env.hour=13;env.windEnabled=false;env.SetWeather(ValleyWeather.Rain,true);
+            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.runClock=false;env.hour=13;env.windEnabled=false;env.SetWeather(WeatherKind.Rain,true);
             var ground=GameObject.Find("Walkable hills and connected trails");var reflection=ground.GetComponent<DetailWaterReflection>();var camera=env.worldCamera;camera.aspect=640f/360;camera.orthographicSize=5;
             var target=new RenderTexture(640,360,24);target.Create();camera.targetTexture=target;var report=new List<string>();
             // An existing low flower, below the old 1.1m clip plane, must survive.
@@ -37,7 +37,7 @@ namespace PixelArtLab.Editor
             reflection.Refresh();OpenWorldSceneBuilder.Capture(camera,"Previews/38-Terrain-Aligned-Fence-Reflection.png");
             int groundId=ground.GetComponent<PixelArtObject>().objectId,trailId=GameObject.Find("Connected dirt trails").GetComponent<PixelArtObject>().objectId;
             foreach(var torch in env.torches)if(torch)torch.enabled=false;
-            camera.transform.position=new Vector3(-2,1,0)-camera.transform.forward*45;camera.orthographicSize=7;env.SetWeather(ValleyWeather.Snow,true);
+            camera.transform.position=new Vector3(-2,1,0)-camera.transform.forward*45;camera.orthographicSize=7;env.SetWeather(WeatherKind.Snow,true);
             foreach(float hour in new[]{7f,13f,17.5f,0f})
             {
                 env.hour=hour;env.Apply();env.sun.shadows=LightShadows.Hard;var shadowed=Render(camera);var ids=Read(camera.GetComponent<PixelLinework>().IdentityBuffer);env.sun.shadows=LightShadows.None;var lit=Render(camera);int darker=0,brighter=0;float maximum=0;

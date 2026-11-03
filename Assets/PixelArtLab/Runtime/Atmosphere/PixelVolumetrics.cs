@@ -8,7 +8,9 @@ namespace PixelArtLab
     public sealed class PixelVolumetrics : MonoBehaviour
     {
         public Shader shader;
-        public WorldEnvironment environment;
+        [Tooltip("Leave empty to use the active EnvironmentState.")]
+        public EnvironmentState environment;
+        EnvironmentState Env=>environment?environment:EnvironmentState.Active;
         [Range(4,32)]public int steps=24;
         [Range(0,.1f)]public float airDensity=.01f;
         public float mediumTop=8,maxMarch=30;
@@ -26,9 +28,9 @@ namespace PixelArtLab
             if(!shader||!shader.isSupported)return null;
             if(!material)material=new Material(shader){hideFlags=HideFlags.HideAndDontSave};
             int count=0;
-            if(environment&&environment.torches!=null)foreach(var light in environment.torches)
+            foreach(var practical in PracticalLight.All)
             {
-                if(count==MaxLights)break;if(!light||!light.enabled||light.intensity<=.01f)continue;
+                if(count==MaxLights)break;var light=practical?practical.Light:null;if(!light||!light.enabled||light.intensity<=.01f)continue;
                 // Air glow covers 60% of the light's reach, so halos read lantern-sized.
                 float reach=light.range*lampGlowReach;
                 lights[count]=new Vector4(light.transform.position.x,light.transform.position.y,light.transform.position.z,1/Mathf.Max(.01f,reach*reach));
@@ -37,7 +39,7 @@ namespace PixelArtLab
             material.SetVectorArray("_LabVolumeLights",lights);material.SetVectorArray("_LabVolumeLightColors",colors);material.SetInt("_LabVolumeLightCount",count);
             material.SetVector("_LabVolumetric",new Vector4(airDensity,mediumTop,maxMarch,steps));
             // Lamp halos fade to a quarter in full daylight; torches stay lit by day.
-            float daylight=environment?environment.Daylight:1;
+            float daylight=Env?Env.Daylight:1;
             material.SetVector("_LabVolumetricStrength",new Vector4(sunStrength*Mathf.Lerp(moonScatter,1,Mathf.Clamp01(daylight*10)),lampStrength*Mathf.Lerp(1,.25f,daylight),bandStep,0));
             material.SetVector("_LabVolumetricTexel",new Vector4(1f/width,1f/height,width,height));
             return material;

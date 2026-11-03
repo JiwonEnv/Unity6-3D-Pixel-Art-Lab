@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61301f92f92ed7745bc8d4d6380728b2, type: 3}
+  m_Name: SO_Weather_Default
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.WeatherProfile
+  rainRate: 0.45
+  snowRate: 0.4
+  wetRate: 0.25
+  dryRate: 0.025
+  snowCoverMax: 0.95
+  snowAccumulateRate: 0.065
+  snowMeltRate: 0.035
+  rainCloud: 0.8
+  snowCloud: 0.65
+  rainGust: 0.65
+  snowGust: 0.25

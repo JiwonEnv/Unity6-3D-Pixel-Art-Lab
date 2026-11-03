@@ -8,7 +8,7 @@ namespace PixelArtLab.Editor
     {
         public static void Run()
         {
-            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);var env=Object.FindFirstObjectByType<WorldEnvironment>();env.SetWeather(ValleyWeather.Rain,true);env.hour=13;env.Apply();
+            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);var env=Object.FindFirstObjectByType<WorldEnvironment>();env.SetWeather(WeatherKind.Rain,true);env.hour=13;env.Apply();
             Debug.Log($"SHADOW_DIAG distance={QualitySettings.shadowDistance} quality={QualitySettings.shadows} light={env.sun.shadows} camera={env.worldCamera.transform.position}");
             foreach(var r in env.player.GetComponentsInChildren<Renderer>())Debug.Log($"PLAYER_RENDER {r.name} layer={r.gameObject.layer} enabled={r.enabled} shadows={r.shadowCastingMode} bounds={r.bounds}");
             var reflection=Object.FindObjectsByType<DetailWaterReflection>(FindObjectsSortMode.None).First(r=>r.textureProperty=="_PuddleReflection");
@@ -26,13 +26,13 @@ namespace PixelArtLab.Editor
             RenderTexture.active=before;Object.DestroyImmediate(t);Object.DestroyImmediate(marker);Object.DestroyImmediate(mat);
             reflection.Refresh();var original=Read(rt);var character=env.player.GetComponentsInChildren<Renderer>();foreach(var r in character)r.enabled=false;reflection.Refresh();int characterPixels=Difference(original,Read(rt));foreach(var r in character)r.enabled=true;
             if(characterPixels<50)throw new System.Exception("Character missing from reflection");
-            env.SetWeather(ValleyWeather.Clear,true);env.hour=10;env.Apply();var target=new RenderTexture(640,360,24);target.Create();env.worldCamera.targetTexture=target;
+            env.SetWeather(WeatherKind.Clear,true);env.hour=10;env.Apply();var target=new RenderTexture(640,360,24);target.Create();env.worldCamera.targetTexture=target;
             var shadows=Render(env.worldCamera);foreach(var r in character)r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;int playerShadow=Difference(shadows,Render(env.worldCamera));foreach(var r in character)r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;
             var tree=GameObject.Find("Poly Haven Detailed Woodland").GetComponentsInChildren<Renderer>().Where(r=>r.name.Contains("island_tree")).ToArray();foreach(var r in tree)r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;int treeShadow=Difference(shadows,Render(env.worldCamera));foreach(var r in tree)r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;
             if(playerShadow<10||treeShadow<100)throw new System.Exception($"Shadow missing: character={playerShadow} tree={treeShadow}");
             env.hour=0;env.Apply();if(!env.torches.Any(l=>l&&l.shadows!=LightShadows.None))throw new System.Exception("No local torch shadow enabled");var night=Render(env.worldCamera);foreach(var l in env.torches)if(l)l.shadows=LightShadows.None;int torchShadow=Difference(night,Render(env.worldCamera));if(torchShadow<10)throw new System.Exception("Torch shadows not visible: "+torchShadow);env.hour=10;env.Apply();
             OpenWorldSceneBuilder.Capture(env.worldCamera,"Previews/35-Character-Tree-Shadows.png");env.worldCamera.targetTexture=null;target.Release();Object.DestroyImmediate(target);
-            env.SetWeather(ValleyWeather.Rain,true);env.hour=13;env.Apply();Vector3 toward= -env.worldCamera.transform.forward;toward.y=0;toward.Normalize();bool found=false;
+            env.SetWeather(WeatherKind.Rain,true);env.hour=13;env.Apply();Vector3 toward= -env.worldCamera.transform.forward;toward.y=0;toward.Normalize();bool found=false;
             for(float px=-10;px<10&&!found;px+=.5f)for(float pz=-10;pz<10&&!found;pz+=.5f)
             {
                 Vector3 p=new Vector3(px,OpenWorldSceneBuilder.Height(px,pz)+.1f,pz);if(!PuddleSurface.Ground(p,out var hit)||PuddleSurface.Coverage(hit.point,hit.normal,1,0)<.7f)continue;

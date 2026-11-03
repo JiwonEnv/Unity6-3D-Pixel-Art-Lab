@@ -15,7 +15,7 @@ namespace PixelArtLab.Editor
         static void Require(bool condition,string message){if(!condition)throw new Exception(message);}
         public static void Distribution()
         {
-            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.SetWeather(ValleyWeather.Rain,true);env.hour=13;env.Apply();
+            EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.SetWeather(WeatherKind.Rain,true);env.hour=13;env.Apply();
             int pools=0,outside=0;float min=100,max=-100;var quadrants=new int[4];
             for(int x=-68;x<=68;x+=2)for(int z=-68;z<=68;z+=2)
             {
@@ -39,7 +39,7 @@ namespace PixelArtLab.Editor
                 if(stage==0)
                 {
                     env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();player=env.player;
-                    Require(steps,"Footstep component not saved");env.runClock=false;env.hour=13;env.SetWeather(ValleyWeather.Rain,true);player.externalControl=true;player.externalMove=Vector2.zero;
+                    Require(steps,"Footstep component not saved");env.runClock=false;env.hour=13;env.SetWeather(WeatherKind.Rain,true);player.externalControl=true;player.externalMove=Vector2.zero;
                     Vector3 forward=player.cameraTransform.forward;forward.y=0;forward.Normalize();bool found=false;
                     for(int x=-15;x<=15&&!found;x++)for(int z=-15;z<=15&&!found;z++)
                     {
@@ -62,8 +62,8 @@ namespace PixelArtLab.Editor
                 else if(stage==3&&Time.time-started>1.2f)
                 {
                     Require(steps.GetComponent<MeshFilter>().sharedMesh.vertexCount==0,"Old splash geometry did not expire");baseline=steps.EmittedCount;
-                    env.SetWeather(ValleyWeather.Clear,true);Require(!steps.TryStep(wetPoint),"Dry ground emitted a splash");env.SetWeather(ValleyWeather.Snow,true);Require(!steps.TryStep(wetPoint),"Snow emitted a splash");Require(steps.EmittedCount==baseline,"Dry / snow changed splash count");report.Add("Stopped rings expire; dry ground and snow suppress splashes: PASS");
-                    env.SetWeather(ValleyWeather.Rain,true);player.Teleport(wetPoint+Vector3.up*.1f);started=Time.time;stage=4;
+                    env.SetWeather(WeatherKind.Clear,true);Require(!steps.TryStep(wetPoint),"Dry ground emitted a splash");env.SetWeather(WeatherKind.Snow,true);Require(!steps.TryStep(wetPoint),"Snow emitted a splash");Require(steps.EmittedCount==baseline,"Dry / snow changed splash count");report.Add("Stopped rings expire; dry ground and snow suppress splashes: PASS");
+                    env.SetWeather(WeatherKind.Rain,true);player.Teleport(wetPoint+Vector3.up*.1f);started=Time.time;stage=4;
                 }
                 else if(stage==4&&Time.time-started>.6f){Require(player.Grounded,"Cannot start jump");baseline=steps.EmittedCount;player.QueueJump();started=Time.time;stage=5;}
                 else if(stage==5&&Time.time-started>.25f){Require(!player.Grounded,"Jump did not leave ground");Require(steps.EmittedCount==baseline,"Airborne player emitted footsteps");report.Add("Airborne player does not emit water steps: PASS");stage=6;}

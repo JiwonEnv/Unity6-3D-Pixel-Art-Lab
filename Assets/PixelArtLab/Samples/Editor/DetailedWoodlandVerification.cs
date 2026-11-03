@@ -22,7 +22,7 @@ namespace PixelArtLab.Editor
         public static void Run()
         {
             EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
-            var report=new List<string>();var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(ValleyWeather.Clear,true);
+            var report=new List<string>();var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(WeatherKind.Clear,true);
             var camera=env.worldCamera;camera.aspect=640f/360;camera.orthographicSize=5.8f;camera.transform.position=new Vector3(-5,2,2)-camera.transform.forward*45;
             var target=new RenderTexture(640,360,24);target.Create();camera.targetTexture=target;
             var hybrid=Render(camera);Shader.SetGlobalFloat("_LabDetailedToon",1);int toon=Difference(hybrid,Render(camera));Require(toon>1000,"Detailed shading mode unchanged");report.Add("Hybrid / Toon pixels changed: "+toon);
@@ -36,7 +36,7 @@ namespace PixelArtLab.Editor
             var reflected=Read(reflection.ReflectionTexture);Require(reflected.Any(p=>p.r>30)&&reflected.Select(p=>p.r).Distinct().Count()>10,"Reflection texture is empty");Require(!GL.invertCulling,"Culling state leaked");
             var lake=Render(camera);Shader.SetGlobalFloat("_LabReflectionDisabled",1);int reflectedPixels=Difference(lake,Render(camera));Require(reflectedPixels>100,"Reflection does not reach water");Shader.SetGlobalFloat("_LabReflectionDisabled",0);report.Add("Planar reflection pixels changed: "+reflectedPixels);
             env.animationTime=3.2f;env.Apply();reflection.Refresh();int water=Difference(lake,Render(camera));Require(water>500,"Water does not move");report.Add("Wave / ripple pixels changed: "+water);
-            env.SetWeather(ValleyWeather.Snow,true);int snow=Difference(lake,Render(camera));Require(snow>1000,"Detailed surfaces ignore snow");report.Add("Snow on detailed surfaces: PASS");
+            env.SetWeather(WeatherKind.Snow,true);int snow=Difference(lake,Render(camera));Require(snow>1000,"Detailed surfaces ignore snow");report.Add("Snow on detailed surfaces: PASS");
             report.Insert(0,"DETAILED_WOODLAND_RENDERING_SUCCESS");File.WriteAllLines("Previews/Detailed-Woodland-Verification.txt",report);Debug.Log(string.Join("\n",report));
             camera.targetTexture=null;target.Release();UnityEngine.Object.DestroyImmediate(target);
         }

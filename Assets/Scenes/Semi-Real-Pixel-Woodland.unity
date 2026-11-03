@@ -1816,55 +1816,6 @@ MonoBehaviour:
   mode: 1
   renderers:
   - {fileID: 1410549777}
---- !u!1 &41915604
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 41915606}
-  - component: {fileID: 41915605}
-  m_Layer: 0
-  m_Name: Grade - Dusk Vermilion
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &41915605
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 41915604}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 1
-  blendDistance: 0
-  weight: 0
-  sharedProfile: {fileID: 11400000, guid: 111cbdc90a348c2439692ece6c2399f5, type: 2}
---- !u!4 &41915606
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 41915604}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &42062641
 GameObject:
   m_ObjectHideFlags: 0
@@ -3514,7 +3465,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.PixelVolumetrics
   shader: {fileID: 4800000, guid: f96df3473cdff94408820e2229b8c9ef, type: 3}
-  environment: {fileID: 182131033}
+  environment: {fileID: 182131035}
   steps: 24
   airDensity: 0.01
   mediumTop: 8
@@ -8688,6 +8639,11 @@ GameObject:
   m_Component:
   - component: {fileID: 182131034}
   - component: {fileID: 182131033}
+  - component: {fileID: 182131035}
+  - component: {fileID: 182131039}
+  - component: {fileID: 182131038}
+  - component: {fileID: 182131037}
+  - component: {fileID: 182131036}
   m_Layer: 0
   m_Name: Valley Time Weather and Wind
   m_TagString: Untagged
@@ -8707,60 +8663,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09bc44948b849d4caec7b6ac47cd3bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.WorldEnvironment
-  sun: {fileID: 79981738}
-  torches:
-  - {fileID: 1847153820}
-  - {fileID: 187093077}
-  - {fileID: 1311578349}
-  - {fileID: 325176453}
-  - {fileID: 776691301}
-  - {fileID: 1513637489}
-  - {fileID: 1664066864}
-  - {fileID: 915046543}
-  - {fileID: 2053892977}
-  - {fileID: 411199740}
-  - {fileID: 872939001}
-  - {fileID: 771677638}
-  worldCamera: {fileID: 65014384}
   player: {fileID: 728546661}
-  hour: 14
-  weather: 0
-  runClock: 1
-  windEnabled: 1
-  waterEnabled: 1
-  dayDuration: 480
-  windStrength: 0.65
-  windDirection: {x: 1, y: 0.35}
-  animationTime: 0
-  rain: 0
-  snow: 0
-  wetness: 0
-  snowCover: 0
-  nightAmbient: 0.1
-  moonIntensity: 0.3
-  shadowedPracticals: 4
-  heightFog: 1
-  fogBaseHeight: 0.3
-  fogFalloff: 1.2
-  nightFogDensity: 0.28
-  dayFogDensity: 0.12
-  fogDrift: 0.6
-  lampFogGlow: 0.08
-  colorGrading: 1
-  dayGrade: {fileID: 1224950641}
-  duskVermilionGrade: {fileID: 41915605}
-  duskPinkGrade: {fileID: 1971817524}
-  duskVioletGrade: {fileID: 853681596}
-  nightGrade: {fileID: 1920411676}
-  nightFogColor: {r: 0.09, g: 0.15, b: 0.19, a: 1}
-  dayFogColor: {r: 0.66, g: 0.72, b: 0.74, a: 1}
-  duskVermilionSun: {r: 1, g: 0.42, b: 0.2, a: 1}
-  duskPinkSun: {r: 1, g: 0.5, b: 0.58, a: 1}
-  duskVermilionFog: {r: 0.48, g: 0.26, b: 0.2, a: 1}
-  duskPinkFog: {r: 0.46, g: 0.28, b: 0.38, a: 1}
-  duskVioletFog: {r: 0.3, g: 0.24, b: 0.42, a: 1}
-  nightAmbientTint: {r: 0.42, g: 0.62, b: 0.76, a: 1}
-  dayAmbientTint: {r: 0.95, g: 0.97, b: 1, a: 1}
 --- !u!4 &182131034
 Transform:
   m_ObjectHideFlags: 0
@@ -8776,6 +8679,92 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &182131035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e1c53cf5b41dc744a5f770a0cd23058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.EnvironmentState
+  timeOfDay: {fileID: 11400000, guid: 4f0abf5c787c1314792ff27d4ea0f0fd, type: 2}
+  weatherProfile: {fileID: 11400000, guid: 9c7016f6373596e4bae18a1c3f3954dc, type: 2}
+  hour: 14
+  runClock: 1
+  dayDuration: 480
+  weather: 0
+  rain: 0
+  snow: 0
+  wetness: 0
+  snowCover: 0
+  windEnabled: 1
+  windStrength: 0.65
+  windDirection: {x: 1, y: 0.35}
+  waterMotion: 1
+  animationTime: 0
+  heightFog: 1
+  colorGrading: 1
+--- !u!114 &182131036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5eb05b2e931ea5b419b75abd1471596d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.TimeOfDayGrading
+  state: {fileID: 182131035}
+  priority: 1
+--- !u!114 &182131037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aeb43d55b76c77a4a96d8a9933f40ee0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.PracticalLightManager
+  state: {fileID: 182131035}
+  focus: {fileID: 728546662}
+  shadowedLights: 4
+--- !u!114 &182131038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33cf98335ad9aa947ba7e35b4e819656, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.SkyFogDriver
+  state: {fileID: 182131035}
+  targetCamera: {fileID: 65014384}
+--- !u!114 &182131039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a46a8898717333d4ca644fc33520c573, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.SunMoonDriver
+  state: {fileID: 182131035}
+  sun: {fileID: 79981738}
 --- !u!1001 &185895329
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -40490,7 +40479,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.SnowFootprints
   player: {fileID: 728546661}
-  environment: {fileID: 182131033}
+  environment: {fileID: 182131035}
   minimumSnow: 0.4
   lifetime: 18
 --- !u!4 &817664534
@@ -42259,55 +42248,6 @@ MonoBehaviour:
   mode: 1
   renderers:
   - {fileID: 2009375834}
---- !u!1 &853681595
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 853681597}
-  - component: {fileID: 853681596}
-  m_Layer: 0
-  m_Name: Grade - Dusk Violet
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &853681596
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 853681595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 1
-  blendDistance: 0
-  weight: 0
-  sharedProfile: {fileID: 11400000, guid: 073a23d751739514ea8ab0b1638c0332, type: 2}
---- !u!4 &853681597
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 853681595}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &857450282
 GameObject:
   m_ObjectHideFlags: 0
@@ -59641,55 +59581,6 @@ MonoBehaviour:
   mode: 1
   renderers:
   - {fileID: 1145889075}
---- !u!1 &1224950640
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1224950642}
-  - component: {fileID: 1224950641}
-  m_Layer: 0
-  m_Name: Grade - Day
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1224950641
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1224950640}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 1
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: 6409f8f853b3abd40afabf4a78386f91, type: 2}
---- !u!4 &1224950642
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1224950640}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1225386192
 GameObject:
   m_ObjectHideFlags: 0
@@ -63984,7 +63875,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.PuddleFootsteps
   player: {fileID: 728546661}
-  environment: {fileID: 182131033}
+  environment: {fileID: 182131035}
+  targetCamera: {fileID: 65014384}
 --- !u!4 &1325479583
 Transform:
   m_ObjectHideFlags: 0
@@ -89201,55 +89093,6 @@ MonoBehaviour:
   mode: 1
   renderers:
   - {fileID: 833869555}
---- !u!1 &1920411675
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1920411677}
-  - component: {fileID: 1920411676}
-  m_Layer: 0
-  m_Name: Grade - Night
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1920411676
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1920411675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 1
-  blendDistance: 0
-  weight: 0
-  sharedProfile: {fileID: 11400000, guid: 8572a8c50f9cd9342b153b309e287420, type: 2}
---- !u!4 &1920411677
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1920411675}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1920641238
 GameObject:
   m_ObjectHideFlags: 0
@@ -91567,55 +91410,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9747487cd6e85ca4090887ecca9b4a25, type: 3}
   m_PrefabInstance: {fileID: 1970872932}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1971817523
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1971817525}
-  - component: {fileID: 1971817524}
-  m_Layer: 0
-  m_Name: Grade - Dusk Pink
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1971817524
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1971817523}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 1
-  blendDistance: 0
-  weight: 0
-  sharedProfile: {fileID: 11400000, guid: 2609c6fd99959dc4bb1c2b2bf104d115, type: 2}
---- !u!4 &1971817525
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1971817523}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1975318862
 GameObject:
   m_ObjectHideFlags: 0
@@ -91797,7 +91591,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0977054c2572af24598e5dfb4d4cf4e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.PixelWeatherParticles
-  environment: {fileID: 182131033}
+  environment: {fileID: 182131035}
+  targetCamera: {fileID: 65014384}
+  anchor: {fileID: 728546662}
   weatherMaterial: {fileID: 2100000, guid: 716dcb22fd5005e479b7c59f07030b4c, type: 2}
 --- !u!23 &1977407851
 MeshRenderer:
@@ -100253,9 +100049,4 @@ SceneRoots:
   - {fileID: 1325479583}
   - {fileID: 817664534}
   - {fileID: 731898592}
-  - {fileID: 1224950642}
-  - {fileID: 41915606}
-  - {fileID: 1971817525}
-  - {fileID: 853681597}
-  - {fileID: 1920411677}
   - {fileID: 2032903161}

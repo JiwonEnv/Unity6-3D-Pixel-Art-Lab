@@ -21,8 +21,8 @@ namespace PixelArtLab.Editor
             reflection.source=camera;reflection.waterMaterial=soil;reflection.additionalMaterials=new[]{trail};reflection.textureProperty="_PuddleReflection";reflection.waterHeight=1.1f;
             reflection.groundReceivers=new Renderer[]{ground.GetComponent<MeshRenderer>(),trailObject.GetComponent<MeshRenderer>()};
             var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();reflection.groundAnchor=null;
-            var steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();if(!steps)steps=new GameObject("Puddle footstep rings and splashes").AddComponent<PuddleFootsteps>();steps.player=env.player;steps.environment=env;
-            var snow=UnityEngine.Object.FindFirstObjectByType<SnowFootprints>();if(!snow)snow=new GameObject("Fading snow footprints").AddComponent<SnowFootprints>();snow.player=env.player;snow.environment=env;
+            var steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();if(!steps)steps=new GameObject("Puddle footstep rings and splashes").AddComponent<PuddleFootsteps>();steps.player=env.player;steps.environment=env.State;
+            var snow=UnityEngine.Object.FindFirstObjectByType<SnowFootprints>();if(!snow)snow=new GameObject("Fading snow footprints").AddComponent<SnowFootprints>();snow.player=env.player;snow.environment=env.State;
             foreach(var renderer in env.player.GetComponentsInChildren<Renderer>(true)){renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;renderer.receiveShadows=true;if(renderer is SkinnedMeshRenderer skin)skin.updateWhenOffscreen=true;}
             PlayerVisibilityUpgrade.Configure(camera);
             return reflection;
@@ -39,7 +39,7 @@ namespace PixelArtLab.Editor
             EditorSceneManager.OpenScene(DetailedWoodlandBuilder.ScenePath);
             var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();var camera=env.worldCamera;
             var reflection=Configure(camera);AssetDatabase.SaveAssets();EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-            env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(ValleyWeather.Rain,true);
+            env.runClock=false;env.hour=13;env.animationTime=2;env.SetWeather(WeatherKind.Rain,true);
             UnityEngine.Object.FindFirstObjectByType<PixelWeatherParticles>().Refresh(true);
             camera.aspect=640f/360;camera.orthographicSize=6;camera.transform.position=new Vector3(-2,1,0)-camera.transform.forward*45;
             var target=new RenderTexture(640,360,24);target.Create();camera.targetTexture=target;reflection.Refresh();
@@ -50,10 +50,10 @@ namespace PixelArtLab.Editor
             Shader.SetGlobalFloat("_LabDetailedToon",1);var toon=Render(camera);Shader.SetGlobalFloat("_LabReflectionDisabled",1);Require(Difference(toon,Render(camera))>1000,"Reflection missing with Toon");Shader.SetGlobalFloat("_LabReflectionDisabled",0);Shader.SetGlobalFloat("_LabDetailedToon",0);
             OpenWorldSceneBuilder.Capture(camera,"Previews/30-Rain-Puddles.png");
             env.animationTime=2.3f;env.Apply();Require(Difference(wet,Render(camera))>100,"Rain ripple unchanged");
-            env.weather=ValleyWeather.Clear;env.rain=0;env.Apply();UnityEngine.Object.FindFirstObjectByType<PixelWeatherParticles>().Refresh(true);var residual=Render(camera);soil.SetFloat("_Puddles",0);trail.SetFloat("_Puddles",0);Require(Difference(residual,Render(camera))>100,"Puddles disappeared immediately after rain");soil.SetFloat("_Puddles",1);trail.SetFloat("_Puddles",1);
+            env.weather=WeatherKind.Clear;env.rain=0;env.Apply();UnityEngine.Object.FindFirstObjectByType<PixelWeatherParticles>().Refresh(true);var residual=Render(camera);soil.SetFloat("_Puddles",0);trail.SetFloat("_Puddles",0);Require(Difference(residual,Render(camera))>100,"Puddles disappeared immediately after rain");soil.SetFloat("_Puddles",1);trail.SetFloat("_Puddles",1);
             env.wetness=0;env.Apply();var dry=Render(camera);soil.SetFloat("_Puddles",0);trail.SetFloat("_Puddles",0);Require(Difference(dry,Render(camera))==0,"Puddles remain on dry ground");soil.SetFloat("_Puddles",1);trail.SetFloat("_Puddles",1);
             OpenWorldSceneBuilder.Capture(camera,"Previews/31-Dry-Puddle-Ground.png");
-            env.SetWeather(ValleyWeather.Snow,true);var snow=Render(camera);soil.SetFloat("_Puddles",0);trail.SetFloat("_Puddles",0);Require(Difference(snow,Render(camera))==0,"Puddles visible through snow");soil.SetFloat("_Puddles",1);trail.SetFloat("_Puddles",1);
+            env.SetWeather(WeatherKind.Snow,true);var snow=Render(camera);soil.SetFloat("_Puddles",0);trail.SetFloat("_Puddles",0);Require(Difference(snow,Render(camera))==0,"Puddles visible through snow");soil.SetFloat("_Puddles",1);trail.SetFloat("_Puddles",1);
             Require(!GL.invertCulling&&Shader.GetGlobalFloat("_LabReflectionPass")==0,"Reflection state leaked");
             File.WriteAllText("Previews/Rain-Puddle-Verification.txt",$"RAIN_PUDDLE_SUCCESS\nPuddle pixels: {pools}\nReflection pixels: {reflections}\nToon reflections: PASS\nAnimated rain rings: PASS\nResidual wetness after rain: PASS\nDry ground and snow hide pools: PASS\nReflection render state restored: PASS\nNO PLAYER BUILD\n");
             camera.targetTexture=null;target.Release();UnityEngine.Object.DestroyImmediate(target);Debug.Log("RAIN_PUDDLE_SUCCESS");
