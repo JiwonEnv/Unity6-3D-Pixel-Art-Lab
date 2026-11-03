@@ -1,5 +1,7 @@
 # Unity6-3D-Pixel-Art-Lab
 
+> 배경 제작 기술을 기능별로 구현해 다른 환경 프로젝트에서 재사용하는 것이 목표다. 폴더·어셈블리·이름 규칙은 [프로젝트 규칙](Docs/Conventions.md), 렌더 파이프라인 선택 근거는 [결정 기록](Docs/Render-Pipeline-Decision.md)에 있다.
+
 Unity 6에서 **3D 모델을 2D 픽셀 스프라이트처럼 표현하는 렌더링 연구**입니다.
 Never’s End 개발자의 GDC 2026 발표와 Unity 문서를 참고합니다. 원작의 에셋·코드는 사용하지 않습니다.
 

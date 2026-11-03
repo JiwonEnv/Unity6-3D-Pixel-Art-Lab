@@ -98,7 +98,7 @@ Replaced 캡처(바 실내, 창고) 기준:
 
 ## 5. 1단계 결과 (2026-11-02)
 
-- URP 에셋을 PC용으로 바꿨다(`PixelArtLab-PC-URP`): HDR, Forward+, 주광 그림자 4096, 보조 광원 그림자 아틀라스 4096. 모바일 이름이던 에셋은 GUID를 유지한 채 이름만 바꿨다.
+- URP 에셋을 PC용으로 바꿨다(`RP_PixelArtLab_PC`, R0에서 이름 변경): HDR, Forward+, 주광 그림자 4096, 보조 광원 그림자 아틀라스 4096. 모바일 이름이던 에셋은 GUID를 유지한 채 이름만 바꿨다.
 - `WorldEnvironment`에 조명 비율 값을 추가했다: 밤 주변광 `nightAmbient` 0.1(기존 셰이더 고정값 0.24), 달빛 `moonIntensity` 0.3(기존 0.52), 밤 그늘색 청록 `nightAmbientTint`. 주변광은 `sqrt(Daylight)`로 올라가 노을에도 읽힌다.
 - 불꽃 발광을 HDR 4로 올리고, Woodland에 Bloom(임계값 0.95, 강도 1)·비네트(0.22)·톤매핑 None을 적용했다(`Pixel Art Lab > Background Lighting > Apply Phase 1`).
 - 플레이 모드 캡처: `Pixel Art Lab > Background Lighting > Capture Play Mode` → `Previews/Lighting`. 후처리는 플레이 모드 렌더에서만 적용되므로 화면 밖 렌더 검증과 구분한다.
