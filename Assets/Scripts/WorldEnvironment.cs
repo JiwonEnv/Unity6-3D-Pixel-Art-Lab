@@ -126,7 +126,7 @@ namespace PixelArtLab
                 foreach(var torch in ordered)
                 {
                     var practical=torch.GetComponent<PracticalLight>();
-                    if(practical)practical.Apply(Daylight);else torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
+                    if(practical)practical.Apply(Daylight,animationTime);else torch.intensity=Mathf.Lerp(4.0f,2.1f,Daylight);
                     bool nearby=player&&torch.enabled&&Vector3.Distance(player.transform.position,torch.transform.position)<torch.range+2;
                     bool cast=nearby&&localShadowLights<shadowedPracticals;if(cast)localShadowLights++;
                     torch.shadows=cast?LightShadows.Hard:LightShadows.None;torch.shadowStrength=.85f;torch.shadowBias=.025f;torch.shadowNormalBias=.1f;torch.shadowCustomResolution=512;

@@ -91,9 +91,23 @@ namespace PixelArtLab.Editor
                 glass.GetComponent<Renderer>().shadowCastingMode=ShadowCastingMode.Off;
                 var lightObject=new GameObject("Light");lightObject.transform.SetParent(g.transform,false);lightObject.transform.localPosition=center;
                 var light=lightObject.AddComponent<Light>();light.type=LightType.Point;light.color=lamp.color;light.range=lamp.range;light.renderMode=LightRenderMode.ForcePixel;light.shadows=LightShadows.None;
-                var practical=lightObject.AddComponent<PracticalLight>();practical.nightIntensity=lamp.night;practical.dayIntensity=0;practical.glowColor=lamp.color*2.2f; // above ~2.5 the glass clips to white and loses its huepractical.glow=new[]{glass.GetComponent<Renderer>()};
+                var practical=lightObject.AddComponent<PracticalLight>();practical.nightIntensity=lamp.night;practical.dayIntensity=0;
+                // Candle-in-glass flicker; the cool fishing lamp burns steadier.
+                bool cool=lamp.color==Cool,candle=!lamp.post;
+                practical.flicker=cool?.1f:candle?.3f:.25f;practical.flickerRate=cool?6:candle?10:8;practical.wobble=cool?.01f:.02f;
+                practical.glowColor=lamp.color*2.2f; // above ~2.5 the glass clips to white and loses its huepractical.glow=new[]{glass.GetComponent<Renderer>()};
                 var data=g.AddComponent<PixelArtObject>();data.objectId=id++;data.interior=.05f;data.Apply();
                 lights.Add(light);
+            }
+            // Campfires and torches: strong, fast fire flicker on the light and its flame mesh.
+            var flames=Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include,FindObjectsSortMode.None).Where(r=>r.name=="Fire").ToArray();
+            foreach(var torch in env.torches.Where(t=>t&&!lights.Contains(t)))
+            {
+                var fire=torch.GetComponent<PracticalLight>();if(!fire)fire=torch.gameObject.AddComponent<PracticalLight>();
+                fire.nightIntensity=4;fire.dayIntensity=2.1f;fire.flicker=.35f;fire.flickerRate=12;fire.wobble=.06f;
+                var flame=flames.OrderBy(r=>(r.bounds.center-torch.transform.position).sqrMagnitude).FirstOrDefault(r=>(r.bounds.center-torch.transform.position).sqrMagnitude<2.25f);
+                fire.glow=flame?new[]{flame}:null;fire.glowColor=flame?flame.sharedMaterial.color*FlameEmission:Color.black;
+                EditorUtility.SetDirty(fire);
             }
             env.torches=env.torches.Where(t=>t).Concat(lights).ToArray();EditorUtility.SetDirty(env);env.Apply();
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());AssetDatabase.SaveAssets();
