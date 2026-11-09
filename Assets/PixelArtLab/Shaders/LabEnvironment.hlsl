@@ -7,12 +7,13 @@ float4 _LabWind;          // xy world x/z direction, z strength
 float _LabWeatherTime,_LabWaterTime,_LabWaterMotion;
 float4 _LabAmbientTint;   // shadow-side light by time of day
 float _LabCloudCover;
+float4 _LabCloudShape;   // xy world scale, zw drift speed (WeatherProfile)
 float _LabContinuous;     // 1 = smooth shading instead of toon bands (ExplorationCamera)
 float _LabReflectionPass; // 1 while a planar reflection camera renders
 // Moving cloud shadows on the ground: 1 under a cloud, 0 in open sun.
 half LabCloudShade(float3 p)
 {
-    float cloud=sin(p.x*.085+_LabWeatherTime*.04)+sin(p.z*.11-_LabWeatherTime*.03);
+    float cloud=sin(p.x*_LabCloudShape.x+_LabWeatherTime*_LabCloudShape.z)+sin(p.z*_LabCloudShape.y-_LabWeatherTime*_LabCloudShape.w);
     return step(.3,cloud)*_LabCloudCover;
 }
 // Emission brightness as 0..1; lit parts (lamps, windows) stay clear of rain and snow.

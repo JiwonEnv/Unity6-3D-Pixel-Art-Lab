@@ -16,5 +16,10 @@ namespace PixelArtLab
         [Range(0,1)]public float rainCloud=.8f,snowCloud=.65f;
         [Tooltip("Extra wind gust share while raining / snowing.")]
         public float rainGust=.65f,snowGust=.25f;
+        [Header("Cloud shadows")]
+        [Tooltip("Cloud shadow pattern per meter along world x / z.")]
+        public Vector2 cloudScale=new Vector2(.085f,.11f);
+        [Tooltip("Drift speed along x / z.")]
+        public Vector2 cloudSpeed=new Vector2(.04f,.03f);
     }
 }

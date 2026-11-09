@@ -20,7 +20,7 @@ Assets
    │  ├─ Atmosphere                 픽셀 볼류메트릭
    │  └─ Character                  예제 캐릭터 이동 (R3에서 기능과 분리 예정)
    ├─ Shaders                       SH_ 셰이더 + 기술별 HLSL 모듈 (Lab*.hlsl)
-   ├─ Presets                       기본 프로필 (SO_TimeOfDay_Default, SO_Weather_Default)
+   ├─ Presets                       기본 프로필 (SO_TimeOfDay/Weather_Default, 기술별 스타일 SO_*_Default)
    ├─ Editor                        재사용 에디터 도구 (PixelArtLab.Editor)
    │  ├─ Setup                      URP 파이프라인 설정
    │  ├─ Shading                    Sprite Toon 인스펙터·키워드 일괄 동기화
@@ -139,6 +139,26 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 - 키워드는 값에서 정해진다(`SpriteToonKeywords.Sync`). 인스펙터는 자동으로 맞추고, 코드로 값을 바꿨으면 `Sync`를 부른다. 전체 재동기화는 `Pixel Art Lab > Materials > Sync Sprite Toon Keywords`.
 - **렌더러 단위 스위치는 키워드로 만들지 않는다.** 바람 종류, 캐릭터 조명, 가림 구멍은 MaterialPropertyBlock으로 공유 머티리얼에 렌더러마다 다르게 주기 때문에 uniform 분기로 둔다. 키워드는 머티리얼 전체에만 걸 수 있다.
 - 키워드가 켜져도 값 검사는 남긴다(예: `_LAB_PUDDLES` 안에서 `_Puddles > .001`). 키워드는 "컴파일할지", 값은 "얼마나"를 정한다. 그래서 검증 코드가 값만 0으로 바꿔도 결과가 맞다.
+**스타일 SO (R3)**
+
+모듈 안에 숫자로 있던 "보이는 방식" 값은 기술별 스타일 에셋으로 뺐다. 씬의 `SurfaceStyleSet`(환경 오브젝트에 붙임)에 에셋을 끼우면 셰이더 전역값으로 보낸다. 프로젝트마다 에셋만 바꿔 룩을 바꾼다.
+
+| 스타일 (`Create > Pixel Art Lab > Style`) | 모듈 | 조절 값 |
+| --- | --- | --- |
+| `ToonRampStyle` | LabToonLighting | 밴드 경계·밝기 4단, 밝은 쪽 색조, 직사광 세기, 구름 그늘, 잎 투과 |
+| `SnowStyle` | LabSnow | 눈 색, 쌓이는 경사 시작·급함, 단계 수 |
+| `WetnessStyle` | LabWetness | 젖으면 어두워지는 정도, 젖은 하이라이트 크기·세기 |
+| `PuddleStyle` | LabPuddles | 웅덩이 간격(m), 젖은 흙 색·거칠기, 웅덩이 반사, 빗방울 파문 밀도·속도·세기 |
+| `WaterStyle` | LabWater | 반짝임·거품 색과 세기, 노멀 반복, 프레넬, 밤 반사 |
+| `CharacterLightStyle` | LabCharacterLight | 낮/밤 림 색, 낮/밤 반사광 색, 림 폭·밝기 |
+| `WeatherProfile` (구름 그늘) | LabEnvironment | 구름 그늘 크기·이동 속도 |
+
+- 구분 기준: **얼마나**(적설량, 젖음, 시각)는 `EnvironmentState`, **어떻게 보이나**(색, 단계, 크기)는 스타일 SO, **어디에**(이 머티리얼에 웅덩이)는 머티리얼 값.
+- 슬롯이 비었거나 씬에 `SurfaceStyleSet`이 없어도 기본값이 들어간다(로드 시, 그리고 `EnvironmentState.Apply`에서 확인). 그래서 모듈만 가져간 프로젝트도 깨지지 않는다.
+- 색은 인스펙터 기준 sRGB로 저장하고 보낼 때 선형으로 바꾼다.
+- 웅덩이 간격은 `PuddleSurface`(발 물튀김 판정)도 같은 값을 읽는다.
+- 예제 씬은 `Pixel Art Lab > Style > Migrate Sample Scenes (R3)`로 기본 프리셋을 연결했다(값은 이전과 같음).
+
 - 비교용 전역 스위치(`_LabDetailedToon`, `_LabNormalDisabled`, `_LabReflectionDisabled`, `_LabContinuous`)는 실행 중 전환용이라 키워드가 아니다.
 
 ## 7. 다른 프로젝트로 옮기는 방법
@@ -146,7 +166,7 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 1. `Assets/PixelArtLab`에서 `Runtime`, `Shaders`, `Editor`, `Settings`, `Presets`를 복사한다(`Samples`는 제외).
 2. URP 17.3 패키지를 설치하고 `Pixel Art Lab > Set Up PC URP`를 실행한다.
 3. 레이어 4/8/13을 비워 두거나 `LabLayers`를 그 프로젝트 번호로 바꾼다.
-4. 환경 오브젝트에 `EnvironmentState`와 필요한 드라이버를 붙이고, 프로필을 지정하거나 `Create > Pixel Art Lab > Environment`로 새로 만든다.
+4. 환경 오브젝트에 `EnvironmentState`와 필요한 드라이버를 붙이고, 프로필을 지정하거나 `Create > Pixel Art Lab > Environment`로 새로 만든다. 룩을 바꾸려면 `SurfaceStyleSet`을 붙이고 스타일 SO를 지정한다.
 5. 머티리얼을 가져왔다면 `Pixel Art Lab > Materials > Sync Sprite Toon Keywords`를 실행한다.
 6. `Pixel Art Lab > Tools > Check Missing Scripts`로 누락 스크립트를 확인한다.
 
@@ -164,6 +184,6 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 | R0 | 폴더·어셈블리·이름 규칙·레이어 정리 | 완료 |
 | R1 | 환경 코어 분리, 시간대·날씨 프로필 SO | 완료 |
 | R2 | Sprite Toon 기능별 모듈·키워드 분리 | 완료 |
-| R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 예정 |
+| R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 진행 중 (스타일 SO 완료) |
 | R4 | 기술별 테스트 씬과 검증 | 예정 |
 | R5 | Notion 정리 | 예정 |

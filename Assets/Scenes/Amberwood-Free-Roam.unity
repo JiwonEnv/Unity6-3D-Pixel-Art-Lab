@@ -8184,6 +8184,7 @@ GameObject:
   - component: {fileID: 182131038}
   - component: {fileID: 182131037}
   - component: {fileID: 182131036}
+  - component: {fileID: 182131039}
   m_Layer: 0
   m_Name: Valley Time Weather and Wind
   m_TagString: Untagged
@@ -8291,6 +8292,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.SunMoonDriver
   state: {fileID: 182131035}
   sun: {fileID: 79981738}
+--- !u!114 &182131039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cc6ed7e53b73442ba55ba6dfb4bf09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.SurfaceStyleSet
+  toonRamp: {fileID: 11400000, guid: 752bc688bf196764f803951bcff67da7, type: 2}
+  snow: {fileID: 11400000, guid: ad2a0171ba7afdd4682a03cade346f43, type: 2}
+  wetness: {fileID: 11400000, guid: 5e2070820ecb2794b8bc999399d30426, type: 2}
+  puddles: {fileID: 11400000, guid: 253b7015e81a2904fa9c89489c18a599, type: 2}
+  water: {fileID: 11400000, guid: 96141af29dc6e644a96a8980860f6638, type: 2}
+  characterLight: {fileID: 11400000, guid: 602e93e70776fea4193f0a259bef281e, type: 2}
 --- !u!1 &182411476
 GameObject:
   m_ObjectHideFlags: 0

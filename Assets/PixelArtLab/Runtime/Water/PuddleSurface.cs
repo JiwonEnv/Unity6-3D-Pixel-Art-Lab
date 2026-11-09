@@ -12,8 +12,9 @@ namespace PixelArtLab
         static float Smooth(float a,float b,float x){float t=Mathf.Clamp01((x-a)/(b-a));return t*t*(3-2*t);}
         public static float Coverage(Vector3 p,Vector3 normal,float wetness,float snow)
         {
-            int x=Mathf.FloorToInt(p.x/6),z=Mathf.FloorToInt(p.z/6);float seed=Seed(x,z),second=Seed(x+73,z+19);
-            var offset=new Vector2(p.x/6-x-(.25f+seed*.5f),p.z/6-z-(.25f+second*.5f));
+            float size=PuddleStyle.ActiveCellSize;
+            int x=Mathf.FloorToInt(p.x/size),z=Mathf.FloorToInt(p.z/size);float seed=Seed(x,z),second=Seed(x+73,z+19);
+            var offset=new Vector2(p.x/size-x-(.25f+seed*.5f),p.z/size-z-(.25f+second*.5f));
             float radius=Vector2.Scale(offset,new Vector2(.8f+second*.65f,.8f+seed*.65f)).magnitude;
             float shore=Mathf.Sin(p.x*1.7f+Mathf.Sin(p.z*2.1f))*.045f+Mathf.Sin(p.z*4.7f+p.x*.5f)*.02f;
             float fill=Smooth(.22f,.95f,wetness);

@@ -91,6 +91,9 @@ namespace PixelArtLab
             Shader.SetGlobalFloat("_LabWaterTime",animationTime);
             Shader.SetGlobalFloat("_LabWaterMotion",waterMotion?1:0);
             Shader.SetGlobalFloat("_LabCloudCover",Mathf.Clamp01(.12f+Cloud));
+            Shader.SetGlobalVector("_LabCloudShape",new Vector4(w.cloudScale.x,w.cloudScale.y,w.cloudSpeed.x,w.cloudSpeed.y));
+            // Technique styles (snow color, toon bands, ...) default even without a SurfaceStyleSet.
+            SurfaceStyleSet.EnsurePushed();
 
             Color haze=Color.Lerp(t.nightFogColor,t.dayFogColor,Daylight);
             Color duskHaze=DuskProgress<.5f?Color.Lerp(t.duskVermilionFog,t.duskPinkFog,DuskProgress*2):Color.Lerp(t.duskPinkFog,t.duskVioletFog,DuskProgress*2-1);

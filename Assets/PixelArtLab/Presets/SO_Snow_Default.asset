@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f43d52af8d3952c42be11195967b7f0c, type: 3}
+  m_Name: SO_Snow_Default
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.SnowStyle
+  color: {r: 0.93574095, g: 0.9593465, b: 0.9776915, a: 1}
+  slopeStart: 0.2
+  slopeSharpness: 1.6
+  steps: 4
+  stepBias: 0.2

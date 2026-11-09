@@ -4,6 +4,11 @@
 // side, optional semi-real (GGX) highlights, and the Built-in style point light falloff.
 // Include after URP's Lighting.hlsl.
 #include "LabEnvironment.hlsl"
+// ToonRampStyle (SurfaceStyleSet)
+float4 _LabToonBands;  // xyz energy where each band starts
+float4 _LabToonLevels; // brightness of the four bands
+float4 _LabToonLitTint;// hue of the lit side
+float4 _LabToonParams; // x light color mix, y direct strength, z cloud dimming, w leaf transmission
 struct LabToonSurface
 {
     half3 albedo;
@@ -16,7 +21,7 @@ struct LabToonSurface
     half detail;     // 0 toon bands .. 1 semi-real (smooth diffuse + GGX specular)
 };
 // Four light levels: the pixel-art band look.
-half LabToonBand(half e){return e<.16?0:e<.48?.48:e<.78?.82:1;}
+half LabToonBand(half e){return e<_LabToonBands.x?_LabToonLevels.x:e<_LabToonBands.y?_LabToonLevels.y:e<_LabToonBands.z?_LabToonLevels.z:_LabToonLevels.w;}
 half LabToonNdotL(LabToonSurface s,half3 lightDir)
 {
     return lerp(saturate(dot(s.normalWS,lightDir)),abs(dot(s.normalWS,lightDir)),s.twoSided);
@@ -36,13 +41,13 @@ half3 LabSpecular(LabToonSurface s,half3 lightDir,half3 viewDir,half atten,half3
 half3 LabSunLight(LabToonSurface s,half3 lightDir,half3 viewDir,half atten,half3 lightColor)
 {
     half n=LabToonNdotL(s,lightDir);
-    half energy=n*atten*(1-s.gloss*.35);
+    half energy=n*atten*(1-s.gloss*_LabToonParams.z);
     half band=lerp(LabToonBand(energy),energy,max(_LabContinuous,s.detail));
-    half3 ramp=lerp(s.shadeColor,half3(1.04,1.0,.86),band);
-    half3 oldLight=ramp*lerp(half3(.9,.95,1.0),lightColor,.38);
+    half3 ramp=lerp(s.shadeColor,_LabToonLitTint.rgb,band);
+    half3 oldLight=ramp*lerp(half3(.9,.95,1.0),lightColor,_LabToonParams.x);
     half3 ambient=s.shadeColor*_LabAmbientTint.rgb; // strength by time of day: TimeOfDayProfile
-    half3 timeLight=ambient+lightColor*half3(1.04,1,.86)*band*.65;
-    half3 transmitted=s.albedo*lightColor*saturate(-dot(s.normalWS,lightDir))*s.twoSided*.14*atten;
+    half3 timeLight=ambient+lightColor*_LabToonLitTint.rgb*band*_LabToonParams.y;
+    half3 transmitted=s.albedo*lightColor*saturate(-dot(s.normalWS,lightDir))*s.twoSided*_LabToonParams.w*atten;
     return s.albedo*lerp(oldLight,timeLight,_LabEnvironment.x)+LabSpecular(s,lightDir,viewDir,atten,lightColor)*s.detail+transmitted;
 }
 // Lamps and torches. Toon the surface response, not the distance/shadow attenuation:
