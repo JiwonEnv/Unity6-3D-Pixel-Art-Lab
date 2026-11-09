@@ -319,7 +319,7 @@ namespace PixelArtLab.Editor
             foreach(var renderer in visual.GetComponentsInChildren<Renderer>())renderer.sharedMaterials=renderer.sharedMaterials.Select(Palette).ToArray();
             KnightLoadout(visual);CharacterNormals(visual);
             var animator=visual.GetComponent<Animator>();if(!animator)animator=visual.AddComponent<Animator>();animator.runtimeAnimatorController=Controller();animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
-            var player=g.AddComponent<ExplorerMotor>();player.visual=visual.transform;player.animator=animator;player.spawnPoint=g.transform.position;
+            var player=g.AddComponent<ExplorerMotor>();player.visual=visual.transform;player.animator=animator;player.spawnPoint=g.transform.position;ComponentMigration.AddStepped(player);
             var data=g.AddComponent<PixelArtObject>();data.objectId=id++;data.interior=.05f;data.Apply();return player;
         }
         static AnimatorController Controller()

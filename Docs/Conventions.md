@@ -14,11 +14,11 @@ Assets
    │  ├─ Linework                   물체 ID 선화
    │  ├─ Shading                    조정한 법선, Sprite Toon 키워드 동기화
    │  ├─ Environment                시간대·날씨·바람·강수·생활 조명
-   │  ├─ Water                      웅덩이·평면 반사·발 파문
+   │  ├─ Water                      웅덩이·평면 반사·발 파문·물 영역(WaterBody)
    │  ├─ Snow                       눈 발자국
    │  ├─ Visibility                 캐릭터 가림 해소
-   │  ├─ Atmosphere                 픽셀 볼류메트릭
-   │  └─ Character                  예제 캐릭터 이동 (R3에서 기능과 분리 예정)
+   │  ├─ Atmosphere                 픽셀 볼류메트릭, PixelAtmosphere Volume
+   │  └─ Character                  LabCharacter(기능이 보는 캐릭터), MotionCharacter, SteppedAnimator
    ├─ Shaders                       SH_ 셰이더 + 기술별 HLSL 모듈 (Lab*.hlsl)
    ├─ Presets                       기본 프로필 (SO_TimeOfDay/Weather_Default, 기술별 스타일 SO_*_Default)
    ├─ Editor                        재사용 에디터 도구 (PixelArtLab.Editor)
@@ -27,7 +27,7 @@ Assets
    │  └─ Tools                      프로젝트 점검 도구
    ├─ Settings                      프로젝트 공통 렌더 설정 (RP_, RD_)
    └─ Samples                       이 프로젝트 전용 예제 (다른 프로젝트로 옮기지 않음)
-      ├─ Runtime                    예제 게임플레이·비교 조작 (PixelArtLab.Samples)
+      ├─ Runtime                    예제 게임플레이·비교 조작, 예제 캐릭터 ExplorerMotor (PixelArtLab.Samples)
       ├─ Editor                     씬 생성·검증·단계 적용 스크립트 (PixelArtLab.Samples.Editor)
       └─ Settings                   Woodland 전용 프로필 (SO_TimeOfDay_Woodland, VP_)
 ```
@@ -161,29 +161,46 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 
 - 비교용 전역 스위치(`_LabDetailedToon`, `_LabNormalDisabled`, `_LabReflectionDisabled`, `_LabContinuous`)는 실행 중 전환용이라 키워드가 아니다.
 
-## 7. 다른 프로젝트로 옮기는 방법
+## 7. 캐릭터·물·대기 연결 (R3)
+
+**캐릭터.** 발자국(`SnowFootprints`), 물튀김(`PuddleFootsteps`), 가림 해소(`PlayerVisibility`), 카메라 추적(`ExplorationCamera`), 픽셀 정렬(`PixelCharacterAlignment`)은 이제 `LabCharacter`만 본다. 필요한 정보는 서 있는지(`Grounded`), 수평 속도(`HorizontalSpeed`), 포즈 모델(`Visual`)뿐이다.
+
+| 다른 프로젝트의 캐릭터 | 연결 방법 |
+| --- | --- |
+| 기존 컨트롤러를 그대로 둠 | 같은 오브젝트에 `MotionCharacter` 추가 (위치 변화로 속도, 짧은 레이로 접지 판정) |
+| 컨트롤러를 직접 작성 | `LabCharacter`를 상속 (예: 예제 `ExplorerMotor`) |
+
+**계단식 애니메이션.** `SteppedAnimator`는 아무 Animator나 초당 N번만 포즈를 갱신한다(스프라이트 시트 느낌). 끄면 부드러운 애니메이션으로 돌아간다. 예제 캐릭터는 U 키로 방향 스냅과 함께 켜고 끈다.
+
+**물 영역.** `WaterBody`는 물가 타원(중심·반지름)과 수면 높이를 가진다. 물 셰이더의 물가 거품(`_LabWaterBounds`)을 렌더러별로 넣고, 비 입자가 수면에 떨어지게 한다. `Fit To Renderer`(컴포넌트 메뉴)로 메시 크기에 맞춘다. 코드에 박혀 있던 예제 호수 좌표는 제거했다.
+
+**대기 Volume.** `PixelAtmosphere`(URP Volume 오버라이드, `Add Override > Pixel Art Lab > Pixel Atmosphere`)로 구역별 안개와 빛줄기를 바꾼다.
+
+- 체크한 값만 덮어쓴다. 체크하지 않은 값은 카메라의 `PixelVolumetrics`와 시간대 프로필 높이 안개를 그대로 쓴다.
+- 높이 안개는 시간대 값에 **곱하거나(밀도) 더한다(높이)**. 그래서 시간대 변화와 구역 차이가 함께 유지된다.
+- 볼륨 스택은 렌더러 기능이 카메라마다 직접 갱신한다. URP는 스크립트 렌더 요청에서 볼륨을 갱신하지 않기 때문이다.
+
+## 8. 다른 프로젝트로 옮기는 방법
 
 1. `Assets/PixelArtLab`에서 `Runtime`, `Shaders`, `Editor`, `Settings`, `Presets`를 복사한다(`Samples`는 제외).
 2. URP 17.3 패키지를 설치하고 `Pixel Art Lab > Set Up PC URP`를 실행한다.
 3. 레이어 4/8/13을 비워 두거나 `LabLayers`를 그 프로젝트 번호로 바꾼다.
-4. 환경 오브젝트에 `EnvironmentState`와 필요한 드라이버를 붙이고, 프로필을 지정하거나 `Create > Pixel Art Lab > Environment`로 새로 만든다. 룩을 바꾸려면 `SurfaceStyleSet`을 붙이고 스타일 SO를 지정한다.
+4. 환경 오브젝트에 `EnvironmentState`와 필요한 드라이버를 붙이고, 프로필을 지정하거나 `Create > Pixel Art Lab > Environment`로 새로 만든다. 룩을 바꾸려면 `SurfaceStyleSet`을 붙이고 스타일 SO를 지정한다. 캐릭터에는 `MotionCharacter`(또는 `LabCharacter` 상속), 물에는 `WaterBody`를 붙인다.
 5. 머티리얼을 가져왔다면 `Pixel Art Lab > Materials > Sync Sprite Toon Keywords`를 실행한다.
 6. `Pixel Art Lab > Tools > Check Missing Scripts`로 누락 스크립트를 확인한다.
 
 자체 셰이더에서 기술 하나만 쓸 때는 해당 `Lab*.hlsl`을 include하고 함수를 부르면 된다. 예: 눈만 필요하면 `#include "LabSnow.hlsl"` 후 `albedo=LabSnowAlbedo(albedo,normalWS,0);`. 전역값은 `EnvironmentState`가 보낸다.
 
 현재 한계(이후 단계에서 해결):
-- 발자국·파문·가림 해소·캐릭터 정렬이 예제 캐릭터(`ExplorerMotor`)에 의존한다 → R3
-- 물가 거품 타원(`_LabWaterBounds`) 기본값이 예제 호수 위치다 → R3
-- 강수 입자에 예제 호수 위치가 박혀 있다 → R3
+- 가림막 자동 분류 등 일부 예제 씬 구성 스크립트는 이름 규칙에 의존한다(Samples 전용) → R4에서 기술별 테스트 씬과 함께 정리
 
-## 8. 로드맵
+## 9. 로드맵
 
 | 단계 | 내용 | 상태 |
 | --- | --- | --- |
 | R0 | 폴더·어셈블리·이름 규칙·레이어 정리 | 완료 |
 | R1 | 환경 코어 분리, 시간대·날씨 프로필 SO | 완료 |
 | R2 | Sprite Toon 기능별 모듈·키워드 분리 | 완료 |
-| R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 진행 중 (스타일 SO 완료) |
+| R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 완료 |
 | R4 | 기술별 테스트 씬과 검증 | 예정 |
 | R5 | Notion 정리 | 예정 |

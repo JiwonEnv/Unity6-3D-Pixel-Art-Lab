@@ -40,7 +40,7 @@ Shader "PixelArtLab/Sprite Toon"
         [HideInInspector] _LabCharacter("Character",Float)=0
         [HideInInspector] _LabRevealAmount("Player reveal",Float)=0
         [HideInInspector] _LabWindParams("World motion",Vector)=(0,0,1,0)
-        [HideInInspector] _LabWaterBounds("Water center and radii",Vector)=(-30,22,11.5,10.5)
+        [HideInInspector] _LabWaterBounds("Water center and radii (WaterBody)",Vector)=(-30,22,11.5,10.5)
         [HideInInspector] _LabObjectData("Object metadata",Vector)=(.00392157,0,.25,1)
     }
     SubShader

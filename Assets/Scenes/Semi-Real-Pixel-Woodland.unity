@@ -1357,6 +1357,7 @@ GameObject:
   - component: {fileID: 35379642}
   - component: {fileID: 35379645}
   - component: {fileID: 35379646}
+  - component: {fileID: 35379647}
   m_Layer: 4
   m_Name: Stillwater Lake
   m_TagString: Untagged
@@ -1484,6 +1485,21 @@ MonoBehaviour:
   reflections: 1
   groundAnchor: {fileID: 0}
   groundReceivers: []
+--- !u!114 &35379647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 35379640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39e9c15c7f2f0a449bbf32fd845f7bcb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.WaterBody
+  center: {x: -30, y: 22}
+  radii: {x: 11.5, y: 10.5}
+  surfaceHeight: 0.36
 --- !u!1001 &36244178
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33602,6 +33618,7 @@ GameObject:
   - component: {fileID: 728546661}
   - component: {fileID: 728546663}
   - component: {fileID: 728546665}
+  - component: {fileID: 728546666}
   m_Layer: 0
   m_Name: "Player \u2014 KayKit Knight"
   m_TagString: Untagged
@@ -33636,7 +33653,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967039
   steppedFacing: 1
-  animationFrameRate: 12
 --- !u!4 &728546662
 Transform:
   m_ObjectHideFlags: 0
@@ -33707,6 +33723,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PixelArtLab.PixelCharacterAlignment
   player: {fileID: 728546661}
   follow: {fileID: 65014380}
+--- !u!114 &728546666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 728546660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b399be39485f9041911fb03ad943e14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.SteppedAnimator
+  animator: {fileID: 775329591}
+  frameRate: 12
 --- !u!1 &731898590
 GameObject:
   m_ObjectHideFlags: 0

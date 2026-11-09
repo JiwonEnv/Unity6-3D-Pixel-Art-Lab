@@ -76,8 +76,8 @@ namespace PixelArtLab
         static float Ground(float x,float z,float fallback)
         {
             float height=Physics.Raycast(new Vector3(x,fallback+40,z),Vector3.down,out var hit,100,~(1<<LabLayers.Character),QueryTriggerInteraction.Ignore)?hit.point.y:fallback;
-            if(((x+30)*(x+30))/(11.5f*11.5f)+((z-22)*(z-22))/(10.5f*10.5f)<1)height=Mathf.Max(height,.36f);
-            return height;
+            // Water usually has no collider; land the drops on its surface instead of the lake bed.
+            return WaterBody.SurfaceAt(x,z,height);
         }
         void Quad(int index,Vector3 center,Vector3 right,Vector3 up,Color color)
         {

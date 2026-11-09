@@ -8,7 +8,7 @@ namespace PixelArtLab
     public sealed class PlayerVisibility : MonoBehaviour
     {
         public struct Draw {public Renderer renderer;public Material material;public int submesh,pass;}
-        public ExplorerMotor player;
+        public LabCharacter player;
         public PlayerOccluder[] occluders;
         [Range(0,1)]public float rimStrength=.32f,bounceStrength=.12f;
         public bool rimEnabled=true,naturalReveal=true,buildingScan=true;

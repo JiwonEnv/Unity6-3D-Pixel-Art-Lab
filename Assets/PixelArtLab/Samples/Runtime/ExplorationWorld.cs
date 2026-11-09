@@ -24,8 +24,8 @@ namespace PixelArtLab
             if(Input.GetKeyDown(KeyCode.Escape))Time.timeScale=Time.timeScale==0?1:0;
             if(!player)return;
             Vector3 position=player.transform.position;
-            float lake=((position.x+30)*(position.x+30))/(11.5f*11.5f)+((position.z-22)*(position.z-22))/(10.5f*10.5f);
-            if(lake<1&&position.y<.32f){player.Respawn();banner="Deep water — returned to camp";bannerUntil=Time.time+3;}
+            bool inWater=WaterBody.All.Exists(w=>w&&w.Contains(position.x,position.z));
+            if(inWater&&position.y<.32f){player.Respawn();banner="Deep water — returned to camp";bannerUntil=Time.time+3;}
             float nearest=float.MaxValue;int region=0;
             for(int i=0;i<landmarks.Length;i++)
             {

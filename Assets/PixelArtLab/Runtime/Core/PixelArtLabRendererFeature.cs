@@ -26,10 +26,12 @@ namespace PixelArtLab
         {
             var camera=renderingData.cameraData.camera;
             if(renderingData.cameraData.cameraType!=CameraType.Game)return;
+            // Local atmosphere volumes for this camera: height fog zone now, light shafts in their pass.
+            var zone=PixelAtmosphere.ForCamera(camera);PixelAtmosphere.PushHeightFogZone(zone);
             var player=camera.GetComponent<PlayerVisibility>();
             if(player&&player.isActiveAndEnabled&&player.draws.Count>0){visibility.source=player;renderer.EnqueuePass(visibility);}
             var air=camera.GetComponent<PixelVolumetrics>();
-            if(air&&air.isActiveAndEnabled){volumetrics.source=air;renderer.EnqueuePass(volumetrics);}
+            if(air&&air.isActiveAndEnabled){volumetrics.source=air;volumetrics.zone=zone;renderer.EnqueuePass(volumetrics);}
             var ink=camera.GetComponent<PixelLinework>();
             if(ink&&ink.isActiveAndEnabled&&ink.linework){linework.source=ink;renderer.EnqueuePass(linework);}
         }
@@ -37,6 +39,7 @@ namespace PixelArtLab
         sealed class VolumetricPass : ScriptableRenderPass
         {
             public PixelVolumetrics source;
+            public PixelAtmosphere zone;
             static readonly int volumeId=Shader.PropertyToID("_LabVolumetricTexture");
             sealed class MarchData {public Material material;}
             sealed class CompositeData {public TextureHandle color,volume;public Material material;}
@@ -45,7 +48,7 @@ namespace PixelArtLab
                 var resources=frameData.Get<UniversalResourceData>();
                 if(resources.isActiveTargetBackBuffer||!resources.cameraDepthTexture.IsValid())return;
                 var colorDesc=renderGraph.GetTextureDesc(resources.activeColorTexture);
-                var material=source.Prepare(colorDesc.width,colorDesc.height);if(!material)return;
+                var material=source.Prepare(colorDesc.width,colorDesc.height,zone);if(!material)return;
                 // Pass 0: march the haze into an HDR buffer the size of the pixel buffer.
                 var volume=UniversalRenderer.CreateRenderGraphTexture(renderGraph,new RenderTextureDescriptor(colorDesc.width,colorDesc.height,GraphicsFormat.R16G16B16A16_SFloat,GraphicsFormat.None),"Pixel Volumetrics",false);
                 using(var builder=renderGraph.AddRasterRenderPass<MarchData>("Pixel volumetric march",out var data))

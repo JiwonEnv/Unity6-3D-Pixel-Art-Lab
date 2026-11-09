@@ -7,7 +7,7 @@ namespace PixelArtLab
     [DefaultExecutionOrder(135)]
     public sealed class SnowFootprints : MonoBehaviour
     {
-        public ExplorerMotor player;
+        public LabCharacter player;
         [Tooltip("Leave empty to use the active EnvironmentState.")]
         public EnvironmentState environment;
         EnvironmentState Env=>environment?environment:EnvironmentState.Active;
@@ -35,7 +35,7 @@ namespace PixelArtLab
             if(delta.magnitude>4)distance=0;
             else if(player.Grounded)
             {
-                Vector3 direction=delta.sqrMagnitude>.0001f?delta.normalized:player.visual.forward;
+                Vector3 direction=delta.sqrMagnitude>.0001f?delta.normalized:player.VisualOrRoot.forward;
                 if(!grounded){TryPlace(current-Vector3.Cross(Vector3.up,direction)*.14f,direction);TryPlace(current+Vector3.Cross(Vector3.up,direction)*.14f,direction);}
                 if(player.HorizontalSpeed>.3f&&delta.magnitude>.001f)
                 {

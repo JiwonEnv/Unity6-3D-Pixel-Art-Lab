@@ -5,7 +5,7 @@ namespace PixelArtLab
     [DefaultExecutionOrder(100),RequireComponent(typeof(Camera))]
     public sealed class ExplorationCamera : MonoBehaviour
     {
-        public ExplorerMotor player;
+        public LabCharacter player;
         public PixelLinework linework;
         public int sourceHeight=360,pixelsPerUnit=25;
         public float yaw=42,pitch=38;

@@ -2,8 +2,9 @@ using UnityEngine;
 
 namespace PixelArtLab
 {
+    // Sample third-person controller. Reusable features only see it as a LabCharacter.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class ExplorerMotor : MonoBehaviour
+    public sealed class ExplorerMotor : LabCharacter
     {
         public Transform cameraTransform, visual;
         public Animator animator;
@@ -13,22 +14,22 @@ namespace PixelArtLab
         public Vector2 externalMove;
         public bool externalSprint;
         public LayerMask groundLayers=~(1<<LabLayers.Character);
+        [Tooltip("Snap facing to 16 directions and pose the rig with SteppedAnimator, if present.")]
         public bool steppedFacing=true;
-        // Sprite-sheet cadence while steppedFacing is on: the rig is posed only this many
-        // times a second, like hand-placed stepped keys (Never's End GDC 2026, slides 92-93).
-        [Min(0)]public float animationFrameRate=12;
-        float animationClock;
+        SteppedAnimator stepped;
         CharacterController controller;
         Vector3 horizontal;
         float vertical, lastGrounded=-10, lastJump=-10;
         bool requestedJump;
-        public bool Grounded {get; private set;}
+        bool grounded;
+        public override bool Grounded=>grounded;
+        public override float HorizontalSpeed=>horizontal.magnitude;
+        public override Transform Visual=>visual;
         public float VerticalSpeed=>vertical;
-        public float HorizontalSpeed=>horizontal.magnitude;
         public int JumpCount {get; private set;}
         public int RespawnCount {get; private set;}
         public string Region {get; set;}="Amberwood Camp";
-        void Awake(){controller=GetComponent<CharacterController>();gameObject.layer=LabLayers.Character;if(spawnPoint==Vector3.zero)spawnPoint=transform.position;}
+        void Awake(){controller=GetComponent<CharacterController>();stepped=GetComponent<SteppedAnimator>();gameObject.layer=LabLayers.Character;if(spawnPoint==Vector3.zero)spawnPoint=transform.position;}
         bool ProbeGround()
         {
             return Physics.SphereCast(transform.position+Vector3.up*.38f,controller.radius*.8f,Vector3.down,out var hit,.25f,groundLayers,QueryTriggerInteraction.Ignore)
@@ -51,19 +52,19 @@ namespace PixelArtLab
             while(remaining>.00001f)
             {
                 float step=Mathf.Min(remaining,1f/60);remaining-=step;
-                Grounded=vertical<=0&&(controller.isGrounded||ProbeGround());
-                if(Grounded){lastGrounded=Time.time;if(vertical<0)vertical=-2;}
+                grounded=vertical<=0&&(controller.isGrounded||ProbeGround());
+                if(grounded){lastGrounded=Time.time;if(vertical<0)vertical=-2;}
                 if(Time.time-lastJump<.14f&&Time.time-lastGrounded<.12f)
                 {
                     vertical=Mathf.Sqrt(jumpHeight*-2*gravity);lastJump=-10;lastGrounded=-10;JumpCount++;
                 }
-                horizontal=Vector3.MoveTowards(horizontal,direction*(sprint?sprintSpeed:walkSpeed),(Grounded?30:12)*step);
+                horizontal=Vector3.MoveTowards(horizontal,direction*(sprint?sprintSpeed:walkSpeed),(grounded?30:12)*step);
                 float dy=vertical*step+gravity*step*step*.5f;vertical=Mathf.Max(vertical+gravity*step,-38);
                 var flags=controller.Move(horizontal*step+Vector3.up*dy);
                 if((flags&CollisionFlags.Above)!=0&&vertical>0)vertical=0;
-                Grounded=(flags&CollisionFlags.Below)!=0;
+                grounded=(flags&CollisionFlags.Below)!=0;
             }
-            Grounded=vertical<=0&&(Grounded||ProbeGround());
+            grounded=vertical<=0&&(grounded||ProbeGround());
             if(visual&&direction.sqrMagnitude>.01f)
             {
                 if(steppedFacing){float angle=Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;visual.rotation=Quaternion.Euler(0,Mathf.Round(angle/22.5f)*22.5f,0);}
@@ -71,13 +72,8 @@ namespace PixelArtLab
             }
             if(animator)
             {
-                animator.SetFloat("Speed",horizontal.magnitude);animator.SetBool("Grounded",Grounded);animator.SetFloat("VerticalSpeed",vertical);
-                bool stepped=steppedFacing&&animationFrameRate>0;animator.enabled=!stepped;
-                if(stepped)
-                {
-                    animationClock+=Time.deltaTime;float frame=1f/animationFrameRate;
-                    if(animationClock>=frame){int frames=Mathf.FloorToInt(animationClock/frame);animator.Update(frames*frame);animationClock-=frames*frame;}
-                }
+                animator.SetFloat("Speed",horizontal.magnitude);animator.SetBool("Grounded",grounded);animator.SetFloat("VerticalSpeed",vertical);
+                if(stepped)stepped.enabled=steppedFacing;
             }
             if(transform.position.y<-8 || Mathf.Abs(transform.position.x)>85 || Mathf.Abs(transform.position.z)>85)Respawn();
         }

@@ -7,7 +7,7 @@ namespace PixelArtLab
     [DefaultExecutionOrder(130)]
     public sealed class PuddleFootsteps : MonoBehaviour
     {
-        public ExplorerMotor player;
+        public LabCharacter player;
         [Tooltip("Leave empty to use the active EnvironmentState.")]
         public EnvironmentState environment;
         EnvironmentState Env=>environment?environment:EnvironmentState.Active;

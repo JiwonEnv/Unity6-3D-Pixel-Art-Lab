@@ -23,3 +23,5 @@ MonoBehaviour:
   snowCloud: 0.65
   rainGust: 0.65
   snowGust: 0.25
+  cloudScale: {x: 0.9, y: 0.11}
+  cloudSpeed: {x: 0.04, y: 0.03}

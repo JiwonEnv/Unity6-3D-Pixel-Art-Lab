@@ -38,7 +38,7 @@ namespace PixelArtLab.Editor
                 if(mode==WorldMotionKind.None)continue;
                 if(mode==WorldMotionKind.Water){ReplaceLake(item.gameObject);foreach(var m in item.GetComponent<MeshRenderer>().sharedMaterials){m.SetFloat("_WaterSurface",1);SpriteToonKeywords.Sync(m);EditorUtility.SetDirty(m);}}
                 if(mode==WorldMotionKind.Flag)SubdivideFlag(item.gameObject);
-                var motion=item.GetComponent<WorldSurfaceMotion>();if(!motion)motion=item.gameObject.AddComponent<WorldSurfaceMotion>();motion.kind=mode;motion.Apply();
+                var motion=item.GetComponent<WorldSurfaceMotion>();if(!motion)motion=item.gameObject.AddComponent<WorldSurfaceMotion>();motion.kind=mode;motion.Apply();if(mode==WorldMotionKind.Water)ComponentMigration.AddLake(item.gameObject);
             }
             var alignment=player.GetComponent<PixelCharacterAlignment>();if(!alignment)alignment=player.gameObject.AddComponent<PixelCharacterAlignment>();alignment.player=player;alignment.follow=follow;
             player.steppedFacing=true;

@@ -11,7 +11,7 @@ Shader "Hidden/PixelArtLab/Volumetrics"
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-        float4 _LabHeightFog;            // shared with Sprite Toon: x full-density height, y falloff, z density
+        float4 _LabHeightFog,_LabHeightFogZone;            // shared with Sprite Toon: x full-density height, y falloff, z density
         float4 _LabVolumetric;           // x air density floor, y medium top height, z max march length, w steps
         float4 _LabVolumetricStrength;   // x sun/moon, y lamps, z quantize step, w unused
         ENDHLSL
@@ -30,7 +30,7 @@ Shader "Hidden/PixelArtLab/Volumetrics"
             int _LabVolumeLightCount;
             float Medium(float y)
             {
-                return _LabVolumetric.x+_LabHeightFog.z*exp(-max(0,y-_LabHeightFog.x)/max(.01,_LabHeightFog.y));
+                return _LabVolumetric.x+_LabHeightFog.z*(1+_LabHeightFogZone.x)*exp(-max(0,y-(_LabHeightFog.x+_LabHeightFogZone.y))/max(.01,_LabHeightFog.y));
             }
             float4 frag(Varyings input):SV_Target
             {

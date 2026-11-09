@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.CharacterLightStyle
   rimDay: {r: 1, g: 0.93574095, b: 0.8094681, a: 1}
   rimNight: {r: 0.6799757, g: 0.84338915, b: 1, a: 1}
-  rimDayMix: 0.6
+  rimDayMix: 0.57
   bounceDay: {r: 0.6012433, g: 0.64216644, b: 0.5271128, a: 1}
   bounceNight: {r: 0.42358282, g: 0.5370987, b: 0.66518503, a: 1}
   rimThreshold: 0.62
