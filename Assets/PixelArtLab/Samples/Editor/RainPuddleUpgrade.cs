@@ -22,7 +22,7 @@ namespace PixelArtLab.Editor
             reflection.groundReceivers=new Renderer[]{ground.GetComponent<MeshRenderer>(),trailObject.GetComponent<MeshRenderer>()};
             var env=UnityEngine.Object.FindFirstObjectByType<WorldEnvironment>();reflection.groundAnchor=null;
             var steps=UnityEngine.Object.FindFirstObjectByType<PuddleFootsteps>();if(!steps)steps=new GameObject("Puddle footstep rings and splashes").AddComponent<PuddleFootsteps>();steps.player=env.player;steps.environment=env.State;
-            var snow=UnityEngine.Object.FindFirstObjectByType<SnowFootprints>();if(!snow)snow=new GameObject("Fading snow footprints").AddComponent<SnowFootprints>();snow.player=env.player;snow.environment=env.State;
+            var snow=UnityEngine.Object.FindFirstObjectByType<SnowFootprints>();if(!snow)snow=new GameObject("Fading snow footprints").AddComponent<SnowFootprints>();snow.player=env.player;snow.environment=env.State;snow.terrainOnly=true;
             foreach(var renderer in env.player.GetComponentsInChildren<Renderer>(true)){renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;renderer.receiveShadows=true;if(renderer is SkinnedMeshRenderer skin)skin.updateWhenOffscreen=true;}
             PlayerVisibilityUpgrade.Configure(camera);
             return reflection;

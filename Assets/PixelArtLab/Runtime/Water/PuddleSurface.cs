@@ -18,11 +18,13 @@ namespace PixelArtLab
             float radius=Vector2.Scale(offset,new Vector2(.8f+second*.65f,.8f+seed*.65f)).magnitude;
             float shore=Mathf.Sin(p.x*1.7f+Mathf.Sin(p.z*2.1f))*.045f+Mathf.Sin(p.z*4.7f+p.x*.5f)*.02f;
             float fill=Smooth(.22f,.95f,wetness);
-            return (1-Smooth(.15f+fill*.13f,.175f+fill*.13f,radius+shore))*fill*(seed>=.2f?1:0)*Smooth(.88f,.99f,normal.y)*(1-Mathf.Clamp01(snow*2))*Smooth(.38f,.6f,p.y);
+            return (1-Smooth(.15f+fill*.13f,.175f+fill*.13f,radius+shore))*fill*(seed>=.2f?1:0)*Smooth(.88f,.99f,normal.y)*(1-Mathf.Clamp01(snow*2))*Smooth(PuddleStyle.ActiveMinimumHeight,PuddleStyle.ActiveMinimumHeight+.22f,p.y);
         }
-        public static bool Ground(Vector3 position,out RaycastHit hit)
+        // requirePuddles: only surfaces whose material has rain puddles (the terrain, not props).
+        public static bool Ground(Vector3 position,out RaycastHit hit,bool requirePuddles=true)
         {
             if(!Physics.Raycast(position+Vector3.up,Vector3.down,out hit,3,LabLayers.GroundProbeMask,QueryTriggerInteraction.Ignore))return false;
+            if(!requirePuddles)return true;
             var renderer=hit.collider.GetComponent<MeshRenderer>();if(!renderer)return false;
             foreach(var material in renderer.sharedMaterials)if(material&&material.HasProperty("_Puddles")&&material.GetFloat("_Puddles")>.5f)return true;
             return false;

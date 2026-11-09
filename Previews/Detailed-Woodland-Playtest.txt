@@ -3,7 +3,7 @@ PASS Player, objectives and follow camera present
 PASS Terrain raycast finds a collision surface
 Start surface: Walkable hills and connected trails at (0.00, 0.81, -13.00)
 PASS Character settles on terrain
-Settled position: (0.00, 0.75, -13.00); deltaTime=0.0165; respawns=0
+Settled position: (0.00, 0.75, -13.00); deltaTime=0.0167; respawns=0
 PASS Camera-relative walk moves more than 3m
 PASS Sprint is faster than walking
 PASS Solid obstacle blocks walking
@@ -19,4 +19,4 @@ PASS Follow camera centers the player
 PASS Imported character Animator runs
 PASS Idle/walk/run/jump/fall clips played
 Observed clips: Idle, Walking_A, Running_A, Jump_Start, Jump_Idle
-Walk distance 4.01m; sprint 6.52m; jump rise 1.64m
+Walk distance 4.01m; sprint 6.40m; jump rise 1.64m

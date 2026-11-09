@@ -9,9 +9,12 @@ namespace PixelArtLab
     {
         // Read by PuddleSurface so footstep splashes follow the visible water.
         public static float ActiveCellSize {get;private set;}=6;
+        public static float ActiveMinimumHeight {get;private set;}=.38f;
 
         [Min(1),Tooltip("World grid (m); at most one puddle per cell.")]
         public float cellSize=6;
+        [Tooltip("No puddles below this world height (e.g. a lake shore); they fade in over 0.22 m.")]
+        public float minimumHeight=.38f;
         [Header("Damp soil")]
         public Color dampTint=new Color(.43f,.50f,.54f).gamma;
         [Range(.08f,1)]public float dampRoughness=.28f;
@@ -30,7 +33,8 @@ namespace PixelArtLab
 
         public override void Push()
         {
-            ActiveCellSize=cellSize;
+            ActiveCellSize=cellSize;ActiveMinimumHeight=minimumHeight;
+            Shader.SetGlobalVector("_LabPuddleLevel",new Vector4(minimumHeight,minimumHeight+.22f,0,0));
             Shader.SetGlobalVector("_LabPuddleShape",new Vector4(cellSize,ringDensity,ringSpeed,ringStrength));
             var damp=dampTint.linear;
             Shader.SetGlobalVector("_LabPuddleDamp",new Vector4(damp.r,damp.g,damp.b,dampRoughness));

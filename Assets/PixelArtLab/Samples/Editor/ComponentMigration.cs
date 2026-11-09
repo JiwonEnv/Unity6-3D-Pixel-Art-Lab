@@ -19,6 +19,7 @@ namespace PixelArtLab.Editor
             {
                 var scene=EditorSceneManager.OpenScene(path);
                 foreach(var player in Object.FindObjectsByType<ExplorerMotor>(FindObjectsInactive.Include,FindObjectsSortMode.None))AddStepped(player);
+                foreach(var prints in Object.FindObjectsByType<SnowFootprints>(FindObjectsInactive.Include,FindObjectsSortMode.None)){prints.terrainOnly=true;EditorUtility.SetDirty(prints);}
                 foreach(var motion in Object.FindObjectsByType<WorldSurfaceMotion>(FindObjectsInactive.Include,FindObjectsSortMode.None).Where(m=>m.kind==WorldMotionKind.Water))AddLake(motion.gameObject);
                 EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
             }

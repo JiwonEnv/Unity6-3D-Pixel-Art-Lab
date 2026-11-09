@@ -29,7 +29,8 @@ Assets
    └─ Samples                       이 프로젝트 전용 예제 (다른 프로젝트로 옮기지 않음)
       ├─ Runtime                    예제 게임플레이·비교 조작, 예제 캐릭터 ExplorerMotor (PixelArtLab.Samples)
       ├─ Editor                     씬 생성·검증·단계 적용 스크립트 (PixelArtLab.Samples.Editor)
-      └─ Settings                   Woodland 전용 프로필 (SO_TimeOfDay_Woodland, VP_)
+      ├─ Settings                   Woodland 전용 프로필 (SO_TimeOfDay_Woodland, VP_)
+      └─ Techniques                 기술별 테스트 씬 (R4): Scenes, Materials(MAT_Technique_*), Styles
 ```
 
 - 씬(`Assets/Scenes`), 아트(`Assets/Art`), 외부 에셋(`Assets/ThirdParty`)은 예제 콘텐츠다. 씬 생성 스크립트가 경로 문자열로 참조하므로 R0에서는 옮기지 않았다(R4에서 기술별 테스트 씬과 함께 정리).
@@ -180,7 +181,33 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 - 높이 안개는 시간대 값에 **곱하거나(밀도) 더한다(높이)**. 그래서 시간대 변화와 구역 차이가 함께 유지된다.
 - 볼륨 스택은 렌더러 기능이 카메라마다 직접 갱신한다. URP는 스크립트 렌더 요청에서 볼륨을 갱신하지 않기 때문이다.
 
-## 8. 다른 프로젝트로 옮기는 방법
+## 8. 기술별 테스트 씬 (R4)
+
+기술마다 작은 테스트 씬이 하나씩 있다. **Runtime 코드 + 프리미티브 + 기본 프리셋만**으로 만든다. 그래서 여기서 동작하면 그 기술은 예제 아트에 의존하지 않는다는 뜻이다.
+
+- 생성: `Pixel Art Lab > Techniques > Build Test Scenes` (`Samples/Techniques/Scenes/Technique-*.unity`)
+- 검증: `TechniqueVerification.Run`. 씬마다 기술을 켜고 끄며 화면이나 값이 실제로 바뀌는지 확인하고, `Previews/Techniques/*.png`와 `Previews/Technique-Verification.txt`를 남긴다.
+- 공통 구성: 바닥, 상자·기둥·공, 캡슐 캐릭터(`MotionCharacter`), 해, `EnvironmentState`와 드라이버, `SurfaceStyleSet`, 선화 카메라.
+
+| 씬 | 확인 내용 |
+| --- | --- |
+| ToonLighting | ToonRampStyle 밴드 변경, 시간대 변화 |
+| PixelCamera | 서브텍셀 이동에도 카메라가 텍셀 격자에 머묾, 나머지는 반 텍셀 이하, 포인트 필터 버퍼 |
+| Linework | 선화 켜고 끔 |
+| Wind | 시간에 따른 나무·풀 움직임, 같은 순간 바람 끔과 비교 |
+| Wetness | 비에 젖음 |
+| Snow | 적설, 평지 발자국 |
+| Puddles | 웅덩이, 웅덩이 반사, 보이는 웅덩이와 발 물튀김 판정 일치 (`SO_Puddles_FlatGround`: 높이 하한 해제) |
+| Water | 수면 반사, WaterBody 물가 거품, 수면 높이 조회 |
+| PracticalLights | 일렁임으로 세기 변화, 밤 등불 |
+| Atmosphere | 높이 안개, 볼류메트릭, PixelAtmosphere 안개 구역 |
+| Visibility | 캐릭터 앞 벽 감지와 디더 구멍 |
+
+이번 단계에서 예제 전용 가정 두 가지를 더 찾아 설정으로 뺐다.
+- 웅덩이 높이 하한 0.38 m는 예제 호수 수위였다 → `PuddleStyle.minimumHeight`
+- 눈 발자국이 웅덩이 지면(지형)에만 찍히던 규칙 → `SnowFootprints.terrainOnly` (예제 씬은 켬, 기본은 끔)
+
+## 9. 다른 프로젝트로 옮기는 방법
 
 1. `Assets/PixelArtLab`에서 `Runtime`, `Shaders`, `Editor`, `Settings`, `Presets`를 복사한다(`Samples`는 제외).
 2. URP 17.3 패키지를 설치하고 `Pixel Art Lab > Set Up PC URP`를 실행한다.
@@ -192,9 +219,11 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 자체 셰이더에서 기술 하나만 쓸 때는 해당 `Lab*.hlsl`을 include하고 함수를 부르면 된다. 예: 눈만 필요하면 `#include "LabSnow.hlsl"` 후 `albedo=LabSnowAlbedo(albedo,normalWS,0);`. 전역값은 `EnvironmentState`가 보낸다.
 
 현재 한계(이후 단계에서 해결):
-- 가림막 자동 분류 등 일부 예제 씬 구성 스크립트는 이름 규칙에 의존한다(Samples 전용) → R4에서 기술별 테스트 씬과 함께 정리
+- 예제 씬 구성 스크립트(Samples/Editor)는 예제 에셋 이름과 경로에 의존한다. 예제 전용이라 재사용 대상이 아니다.
+- 예제 아트 에셋(`Assets/Art`)은 이름 규칙(MAT_ 등) 이전에 만든 것이라 그대로 둔다. 새 에셋부터 규칙을 따른다.
+- 계단식 애니메이션(`SteppedAnimator`)은 Animator 리그가 필요해 테스트 씬이 없다. 예제 캐릭터로 확인한다.
 
-## 9. 로드맵
+## 10. 로드맵
 
 | 단계 | 내용 | 상태 |
 | --- | --- | --- |
@@ -202,5 +231,5 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 | R1 | 환경 코어 분리, 시간대·날씨 프로필 SO | 완료 |
 | R2 | Sprite Toon 기능별 모듈·키워드 분리 | 완료 |
 | R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 완료 |
-| R4 | 기술별 테스트 씬과 검증 | 예정 |
+| R4 | 기술별 테스트 씬과 검증 | 완료 |
 | R5 | Notion 정리 | 예정 |

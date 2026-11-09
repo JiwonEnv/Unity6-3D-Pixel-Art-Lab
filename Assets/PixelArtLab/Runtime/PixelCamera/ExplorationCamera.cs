@@ -83,7 +83,7 @@ namespace PixelArtLab
                 GUI.BeginGroup(OutputRect);GUI.DrawTexture(new Rect(x,y,buffer.width*texel,buffer.height*texel),buffer,ScaleMode.StretchToFill);GUI.EndGroup();
             }
         }
-        void Release(){if(buffer){buffer.Release();Destroy(buffer);buffer=null;}}
-        void OnDisable(){if(cameraComponent)cameraComponent.targetTexture=null;Release();if(displayClearCamera)Destroy(displayClearCamera.gameObject);Shader.SetGlobalFloat("_LabContinuous",0);}
+        void Release(){if(buffer){buffer.Release();if(Application.isPlaying)Destroy(buffer);else DestroyImmediate(buffer);buffer=null;}}
+        void OnDisable(){if(cameraComponent)cameraComponent.targetTexture=null;Release();if(displayClearCamera){if(Application.isPlaying)Destroy(displayClearCamera.gameObject);else DestroyImmediate(displayClearCamera.gameObject);}Shader.SetGlobalFloat("_LabContinuous",0);}
     }
 }

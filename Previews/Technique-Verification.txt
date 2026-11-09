@@ -1,0 +1,33 @@
+TECHNIQUE_SCENES_SUCCESS
+ToonLighting: PASS
+  ToonRampStyle bands: 201820 px
+  Time of day 13h -> 21h: 230400 px
+PixelCamera: PASS
+  Camera snapped to the texel grid for 8 sub-texel moves; buffer 642x362
+Linework: PASS
+  Linework off: 1420 px
+Wind: PASS
+  Wind 1.4 s later: 2865 px
+  Wind off at the same moment: 2014 px
+Wetness: PASS
+  Rain wetness: 205868 px
+Snow: PASS
+  Snow cover: 204891 px
+  Footprints: 109 px
+Puddles: PASS
+  Puddles: 62644 px
+  Puddle reflection: 32860 px
+  Splash accepted in pool at (-6.00, 0.00, -6.00)
+Water: PASS
+  Water reflection: 20408 px
+  WaterBody shore (foam): 7095 px
+  Rain lands on WaterBody surface: PASS
+PracticalLights: PASS
+  Flicker intensity 2.89 -> 3.45
+  Lanterns at night: 139438 px
+Atmosphere: PASS
+  Height fog: 71383 px
+  Volumetric light: 37604 px
+  PixelAtmosphere fog zone: 230239 px
+Visibility: PASS
+  Wall reveal: 6025 px

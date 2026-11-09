@@ -6,6 +6,7 @@
 float4 _LabPuddleShape; // x cell size (m), y ring density, z ring speed, w ring strength
 float4 _LabPuddleDamp;  // rgb damp soil tint, a damp roughness
 float4 _LabPuddlePool;  // x pool roughness, y pool reflection, z grazing reflection, w damp reflection
+float4 _LabPuddleLevel; // x lowest height, y full height
 // Rain puddles on ground: stable world-space basins that fill with wetness and dry
 // afterwards, a damp soil ring around them, rain rings and a planar reflection inside.
 // Same integer hash and basin equation as PuddleSurface.cs.
@@ -33,7 +34,7 @@ float2 LabPuddleRegions(float3 position,float normalY,float wetness,float snow)
     float fill=smoothstep(.22,.95,wetness);
     float pool=(1-smoothstep(.15+fill*.13,.175+fill*.13,radius+shore))*fill;
     // No altitude band: gentle hills receive pools at their own surface height.
-    float gate=smoothstep(.88,.99,normalY)*(1-saturate(snow*2))*smoothstep(.38,.6,position.y);
+    float gate=smoothstep(.88,.99,normalY)*(1-saturate(snow*2))*smoothstep(_LabPuddleLevel.x,_LabPuddleLevel.y,position.y);
     // A broader, feathered moisture stain follows the SAME basin, rather than
     // a second set of unrelated circles. It appears earlier and dries later.
     float edge=.15+fill*.13;

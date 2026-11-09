@@ -13,6 +13,8 @@ namespace PixelArtLab
         EnvironmentState Env=>environment?environment:EnvironmentState.Active;
         [Range(0,1)]public float minimumSnow=.4f;
         public float lifetime=18;
+        [Tooltip("Only print on puddle-enabled materials (terrain), not on rocks and props.")]
+        public bool terrainOnly;
         public int EmittedCount {get;private set;}
         struct Print {public Vector3 position,normal,forward;public float birth;}
         readonly Print[] prints=new Print[128];
@@ -50,7 +52,7 @@ namespace PixelArtLab
         public bool TryPlace(Vector3 position,Vector3 forward)
         {
             var environment=Env;
-            if(!environment||environment.snowCover<minimumSnow||!PuddleSurface.Ground(position,out var hit)||hit.normal.y<.88f)return false;
+            if(!environment||environment.snowCover<minimumSnow||!PuddleSurface.Ground(position,out var hit,terrainOnly)||hit.normal.y<.88f)return false;
             Ensure();prints[next]=new Print{position=hit.point+hit.normal*.058f,normal=hit.normal,forward=Vector3.ProjectOnPlane(forward,hit.normal).normalized,birth=Time.time};next=(next+1)%prints.Length;EmittedCount++;return true;
         }
         public void Refresh(float now)

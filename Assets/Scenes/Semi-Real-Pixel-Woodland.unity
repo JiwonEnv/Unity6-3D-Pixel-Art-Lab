@@ -33651,7 +33651,7 @@ MonoBehaviour:
   externalSprint: 0
   groundLayers:
     serializedVersion: 2
-    m_Bits: 4294967039
+    m_Bits: 8247
   steppedFacing: 1
 --- !u!4 &728546662
 Transform:
@@ -40531,6 +40531,7 @@ MonoBehaviour:
   environment: {fileID: 182131035}
   minimumSnow: 0.4
   lifetime: 18
+  terrainOnly: 1
 --- !u!4 &817664534
 Transform:
   m_ObjectHideFlags: 0
