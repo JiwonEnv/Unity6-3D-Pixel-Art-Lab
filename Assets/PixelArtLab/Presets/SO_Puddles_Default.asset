@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44b9b8553a6354840a53da0a2b190a7b, type: 3}
+  m_Name: SO_Puddles_Default
+  m_EditorClassIdentifier: PixelArtLab.Runtime::PixelArtLab.PuddleStyle
+  cellSize: 6
+  dampTint: {r: 0.68721706, g: 0.7353569, b: 0.76111215, a: 1}
+  dampRoughness: 0.28
+  dampReflection: 0.06
+  poolRoughness: 0.12
+  poolReflection: 0.55
+  grazingReflection: 0.25
+  ringDensity: 1.3
+  ringSpeed: 1.25
+  ringStrength: 0.08

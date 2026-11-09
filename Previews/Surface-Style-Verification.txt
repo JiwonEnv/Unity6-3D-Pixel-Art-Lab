@@ -1,0 +1,5 @@
+SURFACE_STYLE_SUCCESS
+SnowStyle color change pixels: 212879
+ToonRampStyle band change pixels: 156994
+PixelAtmosphere height fog x4 pixels: 202774, after removal: 0
+WaterBody surface and PuddleStyle cell size: PASS

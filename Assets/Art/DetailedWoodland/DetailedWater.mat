@@ -11,7 +11,10 @@ Material:
   m_Shader: {fileID: 4800000, guid: 534eeab520ff63b459d146b0d2cdf1a5, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _LAB_NORMALMAP
+  - _LAB_SEMIREAL
+  - _LAB_WATER
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -19,7 +22,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties:
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -70,6 +73,7 @@ Material:
     - _Roughness: 0.18
     - _SemiPBR: 0.8
     - _UsePackedARM: 0
+    - _WaterSurface: 1
     m_Colors:
     - _Color: {r: 0.1, g: 0.25, b: 0.28, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}

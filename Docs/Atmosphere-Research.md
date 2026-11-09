@@ -54,7 +54,7 @@ The current environment additions are based on the specific techniques described
 
 - `WorldEnvironment.cs`: time, weather blending, lighting/fog state and shared shader globals.
 - `WorldSurfaceMotion.cs`: renderer property blocks defining tree/grass/flag/water deformation.
-- `WorldMotion.cginc`: shared vertex deformation, called by the existing Toon and identity/depth shaders.
+- `WorldMotion.cginc` (R2 이후 `LabWind.hlsl`): shared vertex deformation, called by the existing Toon and identity/depth shaders.
 - `SpriteToon.shader`: existing local light behavior plus time-of-day shade, wetness, snow and water appearance.
 - `ObjectIdentity.shader`: existing replacement shader now also renders animated depth/normals.
 - `PixelLinework.cs`: retains independent ID/depth targets so moving surfaces and ink agree.

@@ -1,0 +1,90 @@
+using UnityEngine;
+
+namespace PixelArtLab
+{
+    // Sample third-person controller. Reusable features only see it as a LabCharacter.
+    [RequireComponent(typeof(CharacterController))]
+    public sealed class ExplorerMotor : LabCharacter
+    {
+        public Transform cameraTransform, visual;
+        public Animator animator;
+        public float walkSpeed=4.2f, sprintSpeed=7.2f, jumpHeight=1.65f, gravity=-26f;
+        public Vector3 spawnPoint;
+        public bool externalControl;
+        public Vector2 externalMove;
+        public bool externalSprint;
+        public LayerMask groundLayers=~(1<<LabLayers.Character);
+        [Tooltip("Snap facing to 16 directions and pose the rig with SteppedAnimator, if present.")]
+        public bool steppedFacing=true;
+        SteppedAnimator stepped;
+        CharacterController controller;
+        Vector3 horizontal;
+        float vertical, lastGrounded=-10, lastJump=-10;
+        bool requestedJump;
+        bool grounded;
+        public override bool Grounded=>grounded;
+        public override float HorizontalSpeed=>horizontal.magnitude;
+        public override Transform Visual=>visual;
+        public float VerticalSpeed=>vertical;
+        public int JumpCount {get; private set;}
+        public int RespawnCount {get; private set;}
+        public string Region {get; set;}="Amberwood Camp";
+        void Awake(){controller=GetComponent<CharacterController>();stepped=GetComponent<SteppedAnimator>();gameObject.layer=LabLayers.Character;if(spawnPoint==Vector3.zero)spawnPoint=transform.position;}
+        bool ProbeGround()
+        {
+            return Physics.SphereCast(transform.position+Vector3.up*.38f,controller.radius*.8f,Vector3.down,out var hit,.25f,groundLayers,QueryTriggerInteraction.Ignore)
+                && Vector3.Angle(hit.normal,Vector3.up)<=controller.slopeLimit;
+        }
+        public void QueueJump()=>requestedJump=true;
+        void Update()
+        {
+            if(Time.timeScale==0)return;
+            Vector2 move=externalControl?externalMove:new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
+            bool sprint=externalControl?externalSprint:Input.GetKey(KeyCode.LeftShift);
+            if(!externalControl&&Input.GetKeyDown(KeyCode.Space))QueueJump();
+            if(!externalControl&&Input.GetKeyDown(KeyCode.R))Respawn();
+            if(requestedJump){lastJump=Time.time;requestedJump=false;}
+            Vector3 forward=cameraTransform?cameraTransform.forward:Vector3.forward;forward.y=0;forward.Normalize();
+            Vector3 right=cameraTransform?cameraTransform.right:Vector3.right;right.y=0;right.Normalize();
+            Vector3 direction=Vector3.ClampMagnitude(forward*move.y+right*move.x,1);
+            // Keep collision sweeps and gravity stable even in a slow/background frame.
+            float remaining=Time.deltaTime;
+            while(remaining>.00001f)
+            {
+                float step=Mathf.Min(remaining,1f/60);remaining-=step;
+                grounded=vertical<=0&&(controller.isGrounded||ProbeGround());
+                if(grounded){lastGrounded=Time.time;if(vertical<0)vertical=-2;}
+                if(Time.time-lastJump<.14f&&Time.time-lastGrounded<.12f)
+                {
+                    vertical=Mathf.Sqrt(jumpHeight*-2*gravity);lastJump=-10;lastGrounded=-10;JumpCount++;
+                }
+                horizontal=Vector3.MoveTowards(horizontal,direction*(sprint?sprintSpeed:walkSpeed),(grounded?30:12)*step);
+                float dy=vertical*step+gravity*step*step*.5f;vertical=Mathf.Max(vertical+gravity*step,-38);
+                var flags=controller.Move(horizontal*step+Vector3.up*dy);
+                if((flags&CollisionFlags.Above)!=0&&vertical>0)vertical=0;
+                grounded=(flags&CollisionFlags.Below)!=0;
+            }
+            grounded=vertical<=0&&(grounded||ProbeGround());
+            if(visual&&direction.sqrMagnitude>.01f)
+            {
+                if(steppedFacing){float angle=Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;visual.rotation=Quaternion.Euler(0,Mathf.Round(angle/22.5f)*22.5f,0);}
+                else visual.rotation=Quaternion.Slerp(visual.rotation,Quaternion.LookRotation(direction),Time.deltaTime*14);
+            }
+            if(animator)
+            {
+                animator.SetFloat("Speed",horizontal.magnitude);animator.SetBool("Grounded",grounded);animator.SetFloat("VerticalSpeed",vertical);
+                if(stepped)stepped.enabled=steppedFacing;
+            }
+            if(transform.position.y<-8 || Mathf.Abs(transform.position.x)>85 || Mathf.Abs(transform.position.z)>85)Respawn();
+        }
+        public void Respawn()
+        {
+            controller.enabled=false;transform.position=spawnPoint;controller.enabled=true;
+            horizontal=Vector3.zero;vertical=0;lastGrounded=-10;lastJump=-10;RespawnCount++;
+        }
+        public void Teleport(Vector3 position)
+        {
+            controller.enabled=false;transform.position=position;controller.enabled=true;horizontal=Vector3.zero;vertical=0;
+        }
+    }
+}

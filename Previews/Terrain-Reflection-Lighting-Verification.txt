@@ -1,7 +1,7 @@
 TERRAIN_REFLECTION_LIGHTING_SUCCESS
-Existing low flower reflection pixels: 294
+Existing low flower reflection pixels: 425
 Fence contact projection, player near / far and multiple elevations: PASS
-Snow 07.0h: darker shadow pixels=57689, brighter shadow pixels=0 PASS
-Snow 13.0h: darker shadow pixels=9757, brighter shadow pixels=0 PASS
-Snow 17.5h: darker shadow pixels=30263, brighter shadow pixels=0 PASS
-Snow 00.0h: darker shadow pixels=9010, brighter shadow pixels=0 PASS
+Snow 07.0h: darker shadow pixels=56398, brighter shadow pixels=0 PASS
+Snow 13.0h: darker shadow pixels=10335, brighter shadow pixels=0 PASS
+Snow 17.5h: darker shadow pixels=50603, brighter shadow pixels=0 PASS
+Snow 00.0h: darker shadow pixels=9662, brighter shadow pixels=0 PASS
