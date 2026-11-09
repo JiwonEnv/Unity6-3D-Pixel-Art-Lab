@@ -1,5 +1,9 @@
 #ifndef PIXEL_LAB_PUDDLE_MASK
 #define PIXEL_LAB_PUDDLE_MASK
+#include "LabEnvironment.hlsl"
+#include "LabPlanarReflection.hlsl"
+// Rain puddles on ground: stable world-space basins that fill with wetness and dry
+// afterwards, a damp soil ring around them, rain rings and a planar reflection inside.
 // Same integer hash and basin equation as PuddleSurface.cs.
 uint PuddleHash(int2 cell)
 {
@@ -39,4 +43,36 @@ float2 LabPuddleRegions(float3 position,float normalY,float wetness,float snow)
     return float2(pool*step(.2,seed),damp)*gate;
 }
 float LabPuddleMask(float3 position,float normalY,float wetness,float snow){return LabPuddleRegions(position,normalY,wetness,snow).x;}
+struct LabPuddle{float pool;float wetGround;};
+// strength: material _Puddles, wetStrength: _PuddleWetStrength. Edits the surface in place.
+LabPuddle LabApplyPuddles(float3 worldPos,float geometryNormalY,float strength,float wetStrength,inout half3 albedo,inout half rough,inout half3 normalTS)
+{
+    LabPuddle p;p.pool=0;p.wetGround=0;
+    if(strength>.001)
+    {
+        float2 regions=LabPuddleRegions(worldPos,geometryNormalY,_LabEnvironment.z,_LabEnvironment.w);
+        p.pool=strength*regions.x;
+        p.wetGround=strength*wetStrength*regions.y*(1-p.pool);
+        albedo*=lerp(half3(1,1,1),half3(.43,.50,.54),p.wetGround);
+        rough=lerp(rough,.28,p.wetGround);
+        normalTS=normalize(lerp(normalTS,half3(0,0,1),p.wetGround*.25));
+        float2 rippleCell=floor(worldPos.xz*1.3);
+        float rippleAge=frac(_LabWaterTime*1.25+frac(sin(dot(rippleCell,float2(43.1,17.7)))*1327.8));
+        float2 rippleOffset=frac(worldPos.xz*1.3)-.5;
+        float ring=sin((length(rippleOffset)-rippleAge*.7)*65)*exp(-abs(length(rippleOffset)-rippleAge*.7)*35)*(1-rippleAge);
+        normalTS=normalize(lerp(normalTS,half3(normalize(rippleOffset+.001)*ring*.08*_LabEnvironment.z,1),p.pool));
+        rough=lerp(rough,.12,p.pool);
+    }
+    return p;
+}
+// reflected: _PuddleReflection sampled at LabPuddleReflectionUV. Pools mirror strongly,
+// damp soil only at grazing angles.
+void LabPuddleReflect(LabPuddle p,half3 reflected,float3 geometryNormal,float3 view,inout half3 albedo,inout half3 emission)
+{
+    float grazing=1-saturate(dot(geometryNormal,view));
+    float amount=p.pool*(.55+.25*pow(grazing,4))*(1-_LabReflectionDisabled);
+    amount+=p.wetGround*.06*pow(grazing,2)*(1-_LabReflectionDisabled);
+    albedo*=1-amount*.8;
+    emission+=reflected*amount;
+}
 #endif

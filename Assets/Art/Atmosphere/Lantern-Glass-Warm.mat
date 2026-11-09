@@ -69,6 +69,7 @@ Material:
     - _Roughness: 0.75
     - _SemiPBR: 0
     - _UsePackedARM: 0
+    - _WaterSurface: 0
     m_Colors:
     - _Color: {r: 1, g: 0.77900004, b: 0.584, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}

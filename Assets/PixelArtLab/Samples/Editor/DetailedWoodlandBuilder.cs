@@ -68,7 +68,7 @@ namespace PixelArtLab.Editor
             var lake=GameObject.Find("Stillwater Lake");if(!lake.GetComponent<MeshFilter>())lake=world.Cast<Transform>().First(t=>t.name=="Stillwater Lake"&&t.GetComponent<MeshFilter>()).gameObject;
             lake.layer=LabLayers.Water;lake.GetComponent<MeshFilter>().sharedMesh=CloneMesh(lake.GetComponent<MeshFilter>().sharedMesh,"DetailedLake");
             var water=NewMaterial("DetailedWater");water.color=new Color(.10f,.25f,.28f);water.SetFloat("_SemiPBR",.8f);water.SetFloat("_Roughness",.18f);
-            water.SetFloat("_LabWaterFlow",1);water.SetFloat("_LabWaveScale",3);water.SetFloat("_NormalScale",.7f);water.SetFloat("_ReflectionStrength",.95f);water.SetTexture("_NormalMap",WaterNormals());
+            water.SetFloat("_LabWaterFlow",1);water.SetFloat("_LabWaveScale",3);water.SetFloat("_NormalScale",.7f);water.SetFloat("_ReflectionStrength",.95f);water.SetTexture("_NormalMap",WaterNormals());water.SetFloat("_WaterSurface",1);SpriteToonKeywords.Sync(water);
             lake.GetComponent<MeshRenderer>().sharedMaterial=water;
             var follow=UnityEngine.Object.FindFirstObjectByType<ExplorationCamera>();var player=UnityEngine.Object.FindFirstObjectByType<ExplorerMotor>();
             follow.pixelsPerUnit=40;follow.GetComponent<Camera>().orthographicSize=6;follow.lookOffset=Vector3.zero;
@@ -107,6 +107,7 @@ namespace PixelArtLab.Editor
             material.SetFloat("_Roughness",1);material.SetFloat("_SemiPBR",.65f);material.SetFloat("_NormalScale",.8f);material.SetFloat("_AOStrength",.65f);
             material.SetFloat("_AlphaClip",leaves?1:0);material.SetFloat("_Cull",leaves?0:2);material.SetFloat("_LeafTwoSided",leaves?.65f:0);
             if(leaves){material.SetTexture("_AlphaMask",Texture(asset,prefix+"_alpha"));material.renderQueue=2450;material.SetFloat("_Cutoff",.28f);}
+            SpriteToonKeywords.Sync(material);
             if(!diffuse)Debug.LogWarning("Missing diffuse "+prefix);return material;
         }
         static GameObject AddAsset(string asset,Vector2 point,float size,float yaw,int variant)

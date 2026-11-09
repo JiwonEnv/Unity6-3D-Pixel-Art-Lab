@@ -4,7 +4,7 @@ Warm sunset key and long-angle sun: PASS
 Rain: 320 source-pixel streaks, wet surfaces and splashes PASS
 Snow: 220 two-pixel flakes and upward-facing coverage PASS
 Wind changed 3579 pixels; wind-off frozen PASS
-Flag changed 2976 pixels; identity silhouette delta 1479 PASS
+Flag changed 2903 pixels; identity silhouette delta 1479 PASS
 Water changed 5532 pixels; identity silhouette delta 705 PASS
 Animated identity/depth buffers: PASS
 Runtime errors: 0

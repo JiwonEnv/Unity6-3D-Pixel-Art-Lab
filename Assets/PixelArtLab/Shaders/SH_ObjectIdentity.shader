@@ -26,13 +26,13 @@ Shader "Hidden/PixelArtLab/Object Identity"
         float _AlphaClip,_Cutoff,_LabWaveScale,_LabWaterFlow,_LabRevealAmount;
         CBUFFER_END
         TEXTURE2D(_AlphaMask);SAMPLER(sampler_AlphaMask);
-        #include "WorldMotion.cginc"
-        #include "PlayerVisibility.cginc"
+        #include "LabWind.hlsl"
+        #include "LabVisibility.hlsl"
         struct Attributes{float4 positionOS:POSITION;float3 normalOS:NORMAL;float2 uv:TEXCOORD0;};
         struct Varyings{float4 positionCS:SV_POSITION;float3 normal:TEXCOORD0;float depth:TEXCOORD1;float2 uv:TEXCOORD2;float3 world:TEXCOORD3;};
         Varyings vert(Attributes v)
         {
-            LabDeformVertex(v.positionOS,v.normalOS,v.uv);
+            LabDeformVertex(v.positionOS,v.normalOS,_LabWindParams,_LabWaterFlow,_LabWaveScale);
             Varyings o;o.world=TransformObjectToWorld(v.positionOS.xyz);o.positionCS=TransformWorldToHClip(o.world);
             o.normal=mul((float3x3)UNITY_MATRIX_V,TransformObjectToWorldNormal(v.normalOS));
             o.depth=-TransformWorldToView(o.world).z*_ProjectionParams.w;o.uv=TRANSFORM_TEX(v.uv,_MainTex);return o;
@@ -40,7 +40,7 @@ Shader "Hidden/PixelArtLab/Object Identity"
         void Cutout(Varyings i)
         {
             clip(lerp(1,SAMPLE_TEXTURE2D(_AlphaMask,sampler_AlphaMask,i.uv).r,_AlphaClip)-_Cutoff);
-            LabVisibilityClip(i.world,i.positionCS.xy);
+            LabVisibilityClip(i.world,i.positionCS.xy,_LabRevealAmount);
         }
         // Same packing as the Built-in EncodeDepthNormal (stereographic normal + 16-bit depth).
         float4 EncodeDepthNormal(float depth,float3 normal)

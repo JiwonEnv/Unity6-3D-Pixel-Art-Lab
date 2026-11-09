@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PixelArtLab
 {
-    // Keep in sync with Shaders/PuddleMask.cginc: interaction must follow visible water.
+    // Keep in sync with Shaders/LabPuddles.hlsl: interaction must follow visible water.
     public static class PuddleSurface
     {
         static float Seed(int x,int z)

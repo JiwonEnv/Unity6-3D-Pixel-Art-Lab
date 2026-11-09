@@ -36,7 +36,7 @@ namespace PixelArtLab.Editor
                 if(name=="flag")mode=WorldMotionKind.Flag;
                 if(name=="Stillwater Lake"&&item.GetComponent<MeshFilter>())mode=WorldMotionKind.Water;
                 if(mode==WorldMotionKind.None)continue;
-                if(mode==WorldMotionKind.Water)ReplaceLake(item.gameObject);
+                if(mode==WorldMotionKind.Water){ReplaceLake(item.gameObject);foreach(var m in item.GetComponent<MeshRenderer>().sharedMaterials){m.SetFloat("_WaterSurface",1);SpriteToonKeywords.Sync(m);EditorUtility.SetDirty(m);}}
                 if(mode==WorldMotionKind.Flag)SubdivideFlag(item.gameObject);
                 var motion=item.GetComponent<WorldSurfaceMotion>();if(!motion)motion=item.gameObject.AddComponent<WorldSurfaceMotion>();motion.kind=mode;motion.Apply();
             }

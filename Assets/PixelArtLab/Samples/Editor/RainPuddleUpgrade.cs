@@ -16,7 +16,7 @@ namespace PixelArtLab.Editor
             var trailObject=GameObject.Find("Connected dirt trails");var trail=trailObject.GetComponent<MeshRenderer>().sharedMaterial;
             // Rendered trail ribbons sit above terrain; footsteps must hit that visible surface.
             var trailCollider=trailObject.GetComponent<MeshCollider>();if(!trailCollider)trailCollider=trailObject.AddComponent<MeshCollider>();trailCollider.sharedMesh=trailObject.GetComponent<MeshFilter>().sharedMesh;
-            foreach(var material in new[]{soil,trail}){material.SetFloat("_Puddles",1);EditorUtility.SetDirty(material);}
+            foreach(var material in new[]{soil,trail}){material.SetFloat("_Puddles",1);SpriteToonKeywords.Sync(material);EditorUtility.SetDirty(material);}
             var reflection=ground.GetComponent<DetailWaterReflection>();if(!reflection)reflection=ground.AddComponent<DetailWaterReflection>();
             reflection.source=camera;reflection.waterMaterial=soil;reflection.additionalMaterials=new[]{trail};reflection.textureProperty="_PuddleReflection";reflection.waterHeight=1.1f;
             reflection.groundReceivers=new Renderer[]{ground.GetComponent<MeshRenderer>(),trailObject.GetComponent<MeshRenderer>()};
