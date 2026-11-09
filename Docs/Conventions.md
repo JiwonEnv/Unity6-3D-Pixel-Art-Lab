@@ -232,4 +232,4 @@ Sprite Toon은 이제 기술 모듈을 **조합만 하는** 셰이더다. 모듈
 | R2 | Sprite Toon 기능별 모듈·키워드 분리 | 완료 |
 | R3 | 기능 컴포넌트·프리셋, Volume 기반 설정, 예제 의존 제거 | 완료 |
 | R4 | 기술별 테스트 씬과 검증 | 완료 |
-| R5 | Notion 정리 | 예정 |
+| R5 | Notion 정리 ([Unity 6 URP 3D 픽셀 배경 기술 템플릿](https://app.notion.com/p/41310d86fdd580a7af9fd1f146aa43a1)) | 완료 |
